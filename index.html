@@ -151,6 +151,28 @@
           <div class="mode-row"><label for="setpointMode">Druckvorgabe</label><select id="setpointMode"><option value="percent">Prozent [% FS] (Standard)</option><option value="physical">Physikalischer Druck</option></select><label for="setpointUnit">Einheit</label><select id="setpointUnit"><option value="percent">% FS</option><option value="bar">bar</option><option value="mbar">mbar</option><option value="psi">psi</option><option value="kPa">kPa</option><option value="MPa">MPa</option><option value="Pa">Pa</option></select></div>
           <div id="emulatorSetpoints"></div>
           <div class="emulator-readback"><div><small>Normierter Druck</small><strong id="emulatorPercent">50.00 %</strong></div><div><small>Druckwert</small><strong id="emulatorPhysical">50 %</strong></div><div><small>Brückensignal</small><strong id="emulatorSignal">5.000 mV</strong></div></div>
+          <section class="hub-precision" aria-label="Hubauflösung und theoretische Abweichung">
+            <div class="section-head">
+              <div><h3>Wie fein lässt sich der Hub einstellen?
+                <button type="button" class="help-trigger" data-help="hubPrecision" aria-label="Hilfe zur Hubauflösung in Prozent">?</button>
+              </h3><small>Aktuelle Sensorparameter · Angaben in % des gesamten Hubs</small></div>
+              <span class="tag">IDEALISIERTE BERECHNUNG</span>
+            </div>
+            <div class="hub-precision-grid">
+              <div><small>Gewünschter Hub</small><strong id="hubRequested">50.00000 % FS</strong></div>
+              <div><small>Rastermodell: nächster Hub</small><strong id="hubQuantized">–</strong></div>
+              <div><small>Abweichung im Rastermodell</small><strong id="hubDeviation">–</strong></div>
+              <div><small>Lokaler Fein-Schritt</small><strong id="hubFineStep">–</strong></div>
+            </div>
+            <div class="hub-precision-breakdown">
+              <table aria-label="Theoretische Schritte pro Abgleichstufe in Prozent">
+                <thead><tr><th>Abgleich</th><th>Schritt bei Code 512 → 513</th><th>Schrittbereich</th></tr></thead>
+                <tbody id="hubStages"></tbody>
+              </table>
+            </div>
+            <p class="hub-precision-status" id="hubActualStatus">Echter Ist-Hub: nicht verfügbar – Rückmessung und Kalibration fehlen.</p>
+            <p class="hint" id="hubPrecisionHint">Das Rastermodell setzt eine ideale Grob-/Mittelpositionierung und wiederholbare Feinschritte voraus. Es ist keine gemessene oder garantierte Hardwareauflösung.</p>
+          </section>
         </article>
         <article class="panel"><h2>Gerätekommunikation</h2><p class="hint">Web Bluetooth über ESP32-C3. Die momentan vorhandene Firmware speichert Sollwerte nur im RAM und aktiviert keine Analogausgabe.</p><div id="emulatorHardware"></div>
           <div class="info-card"><strong>Hardwarestatus</strong><p>Berechnete Werte sind keine bestätigten realen Ausgangsspannungen.</p></div>
