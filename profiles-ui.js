@@ -6,8 +6,8 @@ const expectedKeys = new Set(window.SensorBridgeCharacteristics.expectedDefiniti
 function parseOptionalBound(value){
  if(value==null || value==='')return null;
  if(typeof value!=='number' && typeof value!=='string')throw Error('Ungültiger Grenzwert');
- const number=Number(value);
- if(!Number.isFinite(number)||Math.abs(number)>1e9)throw Error('Grenzwert ausserhalb des zulässigen Zahlenbereichs');
+ const number=window.SensorBridgeNumbers.parse(value);
+ if(number===null||Math.abs(number)>1e9)throw Error('Grenzwert ausserhalb des zulässigen Zahlenbereichs');
  return number;
 }
 function parseExpectedLimits(obj){
@@ -24,10 +24,10 @@ function parseTestPoints(arr,settings){
  if(!Array.isArray(arr)||arr.length>100)throw Error('Prüfpunkte müssen eine Liste mit maximal 100 Einträgen sein');
  return arr.map((point,i)=>{
   if(!point||typeof point!=='object')throw Error('Ungültiger Prüfpunkt: '+(i+1));
-  const temperature=Number(point.temperature);
-  const pressureValue=point.pressureValue!=null?Number(point.pressureValue):
-    PRESSURE.physical(Number(point.pressure),settings.pressureMin,settings.pressureMax);
-  if(!Number.isFinite(pressureValue)||Math.abs(pressureValue*PRESSURE.units[settings.pressureUnit].factor)>1e9)throw Error('Ungültiger Druck an Punkt '+(i+1));
+  const temperature=window.SensorBridgeNumbers.parse(point.temperature);
+  const pressureValue=point.pressureValue!=null?window.SensorBridgeNumbers.parse(point.pressureValue):
+    PRESSURE.physical(window.SensorBridgeNumbers.parse(point.pressure),settings.pressureMin,settings.pressureMax);
+  if(pressureValue===null||!Number.isFinite(pressureValue)||Math.abs(pressureValue*PRESSURE.units[settings.pressureUnit].factor)>1e9)throw Error('Ungültiger Druck an Punkt '+(i+1));
   const pressure=PRESSURE.percent(pressureValue,settings.pressureMin,settings.pressureMax);
   if(!Number.isFinite(temperature)||temperature< -40||temperature>125)throw Error('Temperatur ausserhalb von −40 bis 125 °C an Punkt '+(i+1));
   const direction=point.direction??'up';
@@ -44,7 +44,7 @@ function makeTableCell(row,content,className){
 }
 function makeNumberField(value,field,placeholder='frei'){
  const input=document.createElement('input');
- input.type='number';input.step='any';input.placeholder=placeholder;
+ input.type='text';input.inputMode='decimal';input.autocomplete='off';input.placeholder=placeholder;
  input.dataset.field=field;
  if(value!==null && value!==undefined)input.value=String(value);
  input.setAttribute('aria-label',field);
@@ -149,7 +149,7 @@ function initProfileUI(){
  document.getElementById('profileName').addEventListener('input',event=>{
   profileName=event.target.value.slice(0,100);
  });
- document.getElementById('expectedBody').addEventListener('input',event=>{
+ document.getElementById('expectedBody').addEventListener('change',event=>{
   const el=event.target;
   if(!el.matches('input[data-key]'))return;
   try{
@@ -157,10 +157,14 @@ function initProfileUI(){
    if(!expectedKeys.has(key)||!['min','max'].includes(bound))return;
    const value=parseOptionalBound(el.value);
    expectedLimits[key]={...expectedLimits[key],[bound]:value};
+   el.value=value==null?'':String(value);
    renderExpectedResults();
-  }catch(err){uiNotice('Ungültiger Grenzwert: '+err.message,'error');}
+  }catch(err){
+   uiNotice('Ungültiger Grenzwert: '+err.message,'error');
+   el.value=expectedLimits[el.dataset.key]?.[el.dataset.field]??'';
+  }
  });
- document.getElementById('testPointsBody').addEventListener('input',event=>{
+ document.getElementById('testPointsBody').addEventListener('change',event=>{
   const input=event.target;
   const row=input.closest('tr[data-id]');if(!row)return;
   const point=testPoints.find(p=>p.id===Number(row.dataset.id));if(!point)return;
@@ -169,13 +173,14 @@ function initProfileUI(){
   else if(['pressureValue','temperature','min','max'].includes(key)){
    if(input.value.trim()==='' && ['min','max'].includes(key))point[key]=null;
    else {
-    const n=Number(input.value);
-    if(!Number.isFinite(n))return;
+    const n=window.SensorBridgeNumbers.parse(input.value);
+    if(n===null)return;
     if(key==='pressureValue'&&Math.abs(n*PRESSURE.units[state.pressureUnit].factor)>1e9)return;
     if(key==='temperature'&&(n< -40||n>125))return;
     point[key]=n;
    }
   }
+  if(key!=='direction' && ['pressureValue','temperature','min','max'].includes(key))input.value=point[key]??'';
   renderPointResults();
  });
  document.getElementById('testPointsBody').addEventListener('change',event=>{
