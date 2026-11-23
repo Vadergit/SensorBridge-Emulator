@@ -69,6 +69,12 @@ The interface MCU is isolated from the sensitive SSC-side circuit. Digital isola
 
 No PCB layout or JLCPCB order should be released until safety, current limiting, actual regulator values, isolation barrier and valid footprint/pin mappings are reviewed.
 
+## Physical operating points in the browser
+
+The web UI lets the user define a pressure range and set an actual pressure in bar, mbar, kPa, MPa, psi or Pa. It maps the selected pressure linearly to 0–100 % of bridge span. An actual temperature in °C modifies TK0, TKE and their second-order terms. Optional expected limits and editable physical corner points support an anticipated sensor-specification data sheet.
+
+These parameters currently drive **only the software simulation**. The actual AD5270 command mapping, physically achievable offset/span, temperature behavior and output accuracy remain entirely unverified. See [Sensor profiles](SENSOR_PROFILES.md).
+
 ## Roadmap
 
 1. Confirm passive bridge behavior in SPICE for all setpoints and rail values.
