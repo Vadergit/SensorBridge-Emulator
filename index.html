@@ -12,12 +12,14 @@
 <script defer src="./number-utils.js"></script>
 <script defer src="./pressure-units.js"></script>
 <script defer src="./characteristics.js"></script>
+<script defer src="./calculations-core.js"></script>
 <script defer src="./profiles-ui.js"></script>
 <script defer src="./workspace.js"></script>
 <script defer src="./app.js"></script>
 <script defer src="./firmware-ui.js"></script>
 <script defer src="./wiki-data.js"></script>
 <script defer src="./wiki-ui.js"></script>
+<script defer src="./calculations-ui.js"></script>
 </head><body>
 <div class="app-shell">
 <aside class="sidebar" id="sidebar">
@@ -28,6 +30,7 @@
     <button type="button" class="nav-button" data-view="sensor"><span>◧</span>Sensor definieren</button>
     <button type="button" class="nav-button" data-view="emulator"><span>∿</span>Emulation</button>
     <button type="button" class="nav-button" data-view="characteristics"><span>⌁</span>Kennlinien & Eckpunkte</button>
+    <button type="button" class="nav-button" data-view="calculations"><span>∑</span>Berechnungen & Auflösung</button>
   </nav>
   <p class="side-group-label">VERWALTUNG</p>
   <nav class="sidebar-nav" aria-label="Verwaltung">
@@ -201,6 +204,45 @@
       </div>
       <p class="hint">Die Eckpunkte prüfen zunächst nur das virtuelle Modell. Reale Sensoren benötigen Messung, ADC-Readback und eine definierte Abgleichfolge. Das Modell verwendet eine quadratische Hysteresekurve mit maximaler Auf-/Ab-Differenz bei 50 %.</p>
     </section>
+    </section>
+
+    <section class="view" id="view-calculations" data-page-title="Berechnungen & Auflösung">
+      <div class="view-head"><div><p class="eyebrow">MATHEMATISCHES MODELL & HARDWAREGRENZEN</p><h2>Berechnungen & Auflösung</h2><p class="hint">Wie beim ELMOS-Konfigurator: links die vollständige Formel, rechts die Rechnung mit den aktuellen Sensorwerten.</p></div></div>
+      <article class="panel calculation-panel">
+        <div class="section-head"><div><h2>Signalberechnung <button type="button" class="help-trigger" data-help="mvperv" aria-label="Hilfe zur Brückensignalberechnung">?</button></h2><small>Alle Zahlen werden beim Ändern der Sensorparameter automatisch aktualisiert</small></div><span class="tag">FORMEL · EINGESETZTE WERTE</span></div>
+        <div class="calc-table-head"><span>Allgemeine Formel</span><span>Berechnung mit aktuellen Werten</span></div>
+        <div id="calculationRows" class="calc-rows"></div>
+        <div class="calc-result"><div><small>BERECHNETER DIFFERENZAUSGANG</small><strong id="calcFinal">—</strong></div><div><small>Referenz</small><strong id="calcReference">—</strong></div></div>
+        <p class="hint">Dieses Modell ist mathematisch. Die Gleichungen geben keine gemessene Genauigkeit des physischen Brückensimulators an.</p>
+      </article>
+      <article class="panel calculation-panel">
+        <div class="section-head"><div><h2>Schrittweiten und theoretische Auflösung <button type="button" class="help-trigger" data-help="resolution" aria-label="Hilfe zu Schrittweite und Auflösung">?</button></h2><small>Bedienoberfläche im Vergleich zu digitalen Widerstandsstellern</small></div><span class="tag">THEORIE · KEINE MESSUNG</span></div>
+        <div id="resolutionSummaries" class="resolution-metrics"></div>
+        <h3>AD5270-Kanäle – idealisierte Einzelarmbetrachtung</h3>
+        <p class="hint">Je 10 Bit und 1024 Stellungen. Die Schaltstufe wird hier als ein einzelner idealer Parallelzweig an R1 einer 10-kΩ-Brücke gerechnet. Die endgültige Verschaltung aller acht Potis, Leckströme und reale Kennlinie sind noch nicht geprüft.</p>
+        <div class="table-scroll"><table class="data-table resolution-table">
+          <thead><tr><th>Stufe</th><th>Kanäle</th><th>Stellungen/Kanal</th><th>R-Schritt ideal</th><th>Min. Signal-Schritt</th><th>Max. Signal-Schritt</th><th>Signalhub pro Kanal</th><th>Schritte in % FS</th></tr></thead>
+          <tbody id="resolutionStages"></tbody>
+        </table></div>
+        <div id="resolutionExample" class="resolution-example"></div>
+      </article>
+      <article class="panel calculation-panel">
+        <div class="section-head"><div><h2>Temperaturzweig – erreichbare Widerstände</h2><small>Vorläufiges Konzept mit 5.9 kΩ Serie und einem AD5270-20k</small></div></div>
+        <div id="thermistorResolution" class="thermistor-resolution"></div>
+      </article>
+      <article class="panel calculation-panel">
+        <div class="section-head"><div><h2>Toleranzen und Zielgenauigkeit <button type="button" class="help-trigger" data-help="tolerance" aria-label="Hilfe zur Genauigkeit">?</button></h2><small>Bauteildaten, theoretische Quantisierung und noch offene Messwerte</small></div></div>
+        <div class="tolerance-controls"><label for="toleranceGoalUv">Gewünschte Ausgangstoleranz (± µV)</label><input id="toleranceGoalUv" type="text" inputmode="decimal" value="1" aria-describedby="toleranceGoalHelp"><small id="toleranceGoalHelp">Nur als Entwicklungsziel, keine bestätigte Hardwaretoleranz</small></div>
+        <div id="toleranceGoalResult" class="info-card"></div>
+        <div class="table-scroll"><table class="data-table"><thead><tr><th>Bauteil / Grösse</th><th>Annahme aus Konzept / Datenblatt</th><th>Bedeutung</th></tr></thead><tbody>
+          <tr><td>Brückenarme R1–R4</td><td>±0.01 % · 2 ppm/K geplant</td><td>Ausgewählter Präzisionswiderstand – Stückliste noch zu prüfen</td></tr>
+          <tr><td>Grob / Mittel Serienwiderstände</td><td>±0.1 % geplant</td><td>Beeinflusst den tatsächlichen Shunt-Kennlinienverlauf</td></tr>
+          <tr><td>Fein-Serienwiderstand</td><td>±1 % geplant</td><td>Feinabgleich besonders empfindlich auf Leckstrom und Umgebung</td></tr>
+          <tr><td>AD5270</td><td>10 Bit · 1024 Stellungen · nominell ±1 % Endwiderstand</td><td>Keine Garantie für ±1 % Genauigkeit des analogen Brückensignals</td></tr>
+          <tr><td>Tatsächliche Ausgangsgenauigkeit</td><td>Unbekannt / nicht gemessen</td><td>Benötigt Messdaten, Rückmessung, Kalibration und Temperaturtests</td></tr>
+        </tbody></table></div>
+        <p class="hint">Nicht miteinander verwechseln: <strong>Schrittweite</strong> ist die kleinste ideale Änderung zwischen zwei Codes; <strong>Genauigkeit</strong> beschreibt die Abweichung zum echten Sollsignal. Es gibt derzeit keine belastbare maximale Ausgangstoleranz oder garantierte Temperatur-/Druckauflösung.</p>
+      </article>
     </section>
     <section class="view" id="view-profiles" data-page-title="Profile">
       <div class="view-head"><div><p class="eyebrow">DATEIEN UND PROFILVERWALTUNG</p><h2>Profile laden und speichern</h2><p class="hint">JSON-Export für die spätere Kalibriersoftware, JSON-Import und lokale Profile im Browser.</p></div></div>
