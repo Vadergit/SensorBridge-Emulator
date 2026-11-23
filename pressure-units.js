@@ -5,6 +5,7 @@
 (function(root){
 'use strict';
 const units=Object.freeze({
+  percent:{factor:null,label:'%',kind:'normalized'},
   bar:{factor:100000,label:'bar'},
   mbar:{factor:100,label:'mbar'},
   kPa:{factor:1000,label:'kPa'},
@@ -13,7 +14,7 @@ const units=Object.freeze({
   Pa:{factor:1,label:'Pa'}
 });
 function convert(value,from,to){
- if(!Number.isFinite(Number(value))||!units[from]||!units[to])throw Error('Ungültige Druckumrechnung');
+ if(!Number.isFinite(Number(value))||!units[from]||!units[to]||from==='percent'||to==='percent')throw Error('Prozentwerte benötigen einen definierten Druckmessbereich; keine direkte physikalische Umrechnung.');
  return Number(value)*units[from].factor/units[to].factor;
 }
 function percent(physical,min,max){
@@ -25,7 +26,9 @@ function physical(percentFS,min,max){
  return min+(max-min)*percentFS/100;
 }
 function validRange(min,max,unit){
- return Number.isFinite(min)&&Number.isFinite(max)&&max>min&&!!units[unit]&&Math.abs(min*units[unit].factor)<=1e9&&Math.abs(max*units[unit].factor)<=1e9;
+ if(!Number.isFinite(min)||!Number.isFinite(max)||max<=min||!units[unit])return false;
+ if(unit==='percent')return min>=0&&max<=100;
+ return Math.abs(min*units[unit].factor)<=1e9&&Math.abs(max*units[unit].factor)<=1e9;
 }
 root.SensorBridgePressure=Object.freeze({units,convert,percent,physical,validRange});
 })(window);
