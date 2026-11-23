@@ -20,16 +20,19 @@ function parseExpectedLimits(obj){
  }
  return parsed;
 }
-function parseTestPoints(arr){
+function parseTestPoints(arr,settings){
  if(!Array.isArray(arr)||arr.length>100)throw Error('Prüfpunkte müssen eine Liste mit maximal 100 Einträgen sein');
  return arr.map((point,i)=>{
   if(!point||typeof point!=='object')throw Error('Ungültiger Prüfpunkt: '+(i+1));
-  const pressure=Number(point.pressure),temperature=Number(point.temperature);
-  if(!Number.isFinite(pressure)||pressure<0||pressure>100)throw Error('Druck ausserhalb von 0–100 % an Punkt '+(i+1));
+  const temperature=Number(point.temperature);
+  const pressureValue=point.pressureValue!=null?Number(point.pressureValue):
+    PRESSURE.physical(Number(point.pressure),settings.pressureMin,settings.pressureMax);
+  if(!Number.isFinite(pressureValue)||Math.abs(pressureValue*PRESSURE.units[settings.pressureUnit].factor)>1e9)throw Error('Ungültiger Druck an Punkt '+(i+1));
+  const pressure=PRESSURE.percent(pressureValue,settings.pressureMin,settings.pressureMax);
   if(!Number.isFinite(temperature)||temperature< -40||temperature>125)throw Error('Temperatur ausserhalb von −40 bis 125 °C an Punkt '+(i+1));
   const direction=point.direction??'up';
   if(direction!=='up'&&direction!=='down')throw Error('Unbekannte Belastungsrichtung');
-  return {pressure,temperature,direction,min:parseOptionalBound(point.min),max:parseOptionalBound(point.max)};
+  return {pressure,pressureValue,temperature,direction,min:parseOptionalBound(point.min),max:parseOptionalBound(point.max)};
  });
 }
 function makeTableCell(row,content,className){
@@ -64,7 +67,7 @@ function renderExpectedRows(){
   tr.dataset.key=def.key;
   makeTableCell(tr,def.label);
   const value=document.createElement('span');value.className='value current';
-  const measured=makeTableCell(tr,value);const unit=document.createElement('span');unit.className='unit';unit.textContent=def.unit;measured.append(unit);
+  const measured=makeTableCell(tr,value);const unit=document.createElement('span');unit.className='unit';unit.textContent=def.unit==='pressure'?state.pressureUnit:def.unit;measured.append(unit);
   for(const bound of ['min','max']){
    const input=makeNumberField(expectedLimits[def.key]?.[bound]??null,bound);
    input.dataset.key=def.key;
@@ -102,10 +105,12 @@ function makeDirectionSelect(value){
 function renderPointRows(){
  const body=document.getElementById('testPointsBody');
  if(!body)return;body.replaceChildren();
+ document.getElementById('testPressureHeading').textContent='Druck ('+state.pressureUnit+')';
  for(const point of testPoints){
   const tr=document.createElement('tr');tr.dataset.id=String(point.id);
-  const pressure=makeNumberField(point.pressure,'pressure','0–100');
-  pressure.min='0';pressure.max='100';makeTableCell(tr,pressure);
+  const pressure=makeNumberField(Number(point.pressureValue.toPrecision(12)),'pressureValue','Druck');
+  makeTableCell(tr,pressure);
+  const percent=document.createElement('span');percent.className='pointPercent unit';makeTableCell(tr,percent);
   const temp=makeNumberField(point.temperature,'temperature','−40–125');
   temp.min='-40';temp.max='125';makeTableCell(tr,temp);
   makeTableCell(tr,makeDirectionSelect(point.direction));
@@ -122,10 +127,20 @@ function renderPointResults(){
  const body=document.getElementById('testPointsBody');if(!body)return;
  for(const tr of body.rows){
   const point=testPoints.find(p=>p.id===Number(tr.dataset.id));if(!point)continue;
-  const result=model(state,point.pressure,point.temperature,point.direction);
-  tr.querySelector('.simulated').textContent=Number(result.out).toLocaleString('de-CH',{minimumFractionDigits:4,maximumFractionDigits:5});
-  const status=SensorBridgeCharacteristics.checkLimits(result.out,point);
-  const pill=tr.querySelector('.status-pill');pill.className='status-pill '+status;pill.textContent=statusLabel(status);
+  const pct=PRESSURE.percent(point.pressureValue,state.pressureMin,state.pressureMax);
+  tr.querySelector('.pointPercent').textContent=Number(pct).toLocaleString('de-CH',{maximumFractionDigits:2})+' %';
+  const outside=pct<0||pct>100||point.temperature<state.temperatureMin||point.temperature>state.temperatureMax;
+  const invalidRange=point.min!=null&&point.max!=null&&point.min>point.max;
+  const output=tr.querySelector('.simulated');
+  const pill=tr.querySelector('.status-pill');
+  if(outside){
+    output.textContent='—';pill.className='status-pill invalid';pill.textContent='Ausserhalb Bereich';
+  }else{
+    const result=model(state,pct,point.temperature,point.direction);
+    output.textContent=Number(result.out).toLocaleString('de-CH',{minimumFractionDigits:4,maximumFractionDigits:5});
+    const status=invalidRange?'invalid':SensorBridgeCharacteristics.checkLimits(result.out,point);
+    pill.className='status-pill '+status;pill.textContent=statusLabel(status);
+  }
  }
 }
 function initProfileUI(){
@@ -150,12 +165,12 @@ function initProfileUI(){
   const point=testPoints.find(p=>p.id===Number(row.dataset.id));if(!point)return;
   const key=input.dataset.field;
   if(key==='direction')point.direction=input.value;
-  else if(['pressure','temperature','min','max'].includes(key)){
+  else if(['pressureValue','temperature','min','max'].includes(key)){
    if(input.value.trim()==='' && ['min','max'].includes(key))point[key]=null;
    else {
     const n=Number(input.value);
     if(!Number.isFinite(n))return;
-    if(key==='pressure'&&(n<0||n>100))return;
+    if(key==='pressureValue'&&Math.abs(n*PRESSURE.units[state.pressureUnit].factor)>1e9)return;
     if(key==='temperature'&&(n< -40||n>125))return;
     point[key]=n;
    }
@@ -177,12 +192,12 @@ function initProfileUI(){
  });
  document.getElementById('addPointBtn').addEventListener('click',()=>{
   if(testPoints.length>=100){uiNotice('Maximal 100 Prüfpunkte unterstützt.','error');return;}
-  testPoints.push({id:nextPointId++,pressure:state.pressure,temperature:state.temperature,direction:state.direction,min:null,max:null});
+  testPoints.push({id:nextPointId++,pressure:state.pressure,pressureValue:state.pressureValue,temperature:state.temperature,direction:state.direction,min:null,max:null});
   renderPointRows();
   uiNotice('Prüfpunkt ergänzt. Optional min./max. Brückensignal eingeben.');
  });
  document.getElementById('resetPointsBtn').addEventListener('click',()=>{
-  testPoints=SensorBridgeCharacteristics.defaultTestPoints().map(p=>({...p,id:nextPointId++}));
+  testPoints=SensorBridgeCharacteristics.defaultTestPoints().map(p=>({...p,pressureValue:PRESSURE.physical(p.pressure,state.pressureMin,state.pressureMax),id:nextPointId++}));
   renderPointRows();uiNotice('Standard-Prüfpunkte wiederhergestellt.');
  });
 }
