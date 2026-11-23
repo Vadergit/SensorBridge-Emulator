@@ -8,7 +8,8 @@ const WRITE_UUID   = 'eaa10001-29f1-4a63-9d72-fd49d8b6c100';
 const STATUS_UUID  = 'eaa10002-29f1-4a63-9d72-fd49d8b6c100';
 const CHAR = window.SensorBridgeCharacteristics;
 const PRESSURE = window.SensorBridgePressure;
-const defaults = Object.freeze({ excitation:5, span:2, offset:0, pressure:50, temperature:25, tk0:0, tke:0, nonlinearity:0, drift:0, ptcEnabled:false, ptcR25:10000, ptcPpm:4000, ...CHAR.extraDefaults });
+const DECIMAL = window.SensorBridgeNumbers;
+const defaults = Object.freeze({ excitation:5, span:2, offset:0, pressure:50, temperature:25, tk0:0, tke:0, nonlinearity:0, drift:0, ptcEnabled:false, ptcR25:10000, ptcPpm:4000, tempResistorMode:'off', ntcR25:10000, ntcBeta:3950, ...CHAR.extraDefaults });
 let state = { ...defaults };
 let expectedLimits = {};
 let testPoints = CHAR.defaultTestPoints().map((p,i)=>({...p,pressureValue:PRESSURE.physical(p.pressure,0,10),id:i+1}));
@@ -19,7 +20,7 @@ const $ = id => document.getElementById(id);
 const num = (x,f=3) => Number(x).toFixed(f);
 const clamp = (v,min,max)=> Math.min(max,Math.max(min,v));
 const escapeText = s => String(s);
-const ranges = { excitation:[.1,5.5], span:[1,4], offset:[-1000,1000], pressure:[0,100], temperature:[-40,125], tk0:[-5000,5000], tke:[-50000,50000], nonlinearity:[-20,20], drift:[-100000,100000], ptcR25:[100,1e7], ptcPpm:[-10000,20000], ...CHAR.extraRanges };
+const ranges = { excitation:[.1,5.5], span:[1,4], offset:[-1000,1000], pressure:[0,100], temperature:[-40,125], tk0:[-5000,5000], tke:[-50000,50000], nonlinearity:[-20,20], drift:[-100000,100000], ptcR25:[100,1e7], ptcPpm:[-10000,20000], ntcR25:[100,1e7], ntcBeta:[100,10000], ...CHAR.extraRanges };
 const wireKeys = Object.keys(defaults);
 function validate(raw) {
   if (!raw || typeof raw !== 'object') throw Error('Ungültiges Profil');
@@ -27,14 +28,18 @@ function validate(raw) {
   for(const key of wireKeys) {
     if (!(key in raw)) continue;
     if(key==='ptcEnabled') { if(typeof raw[key]!=='boolean') throw Error('PTC muss Boolean sein'); result[key]=raw[key]; continue; }
+    if(key==='tempResistorMode'){if(!['off','ptc','ntc'].includes(raw[key]))throw Error('Ungültiger Temperaturwiderstand');result[key]=raw[key];continue;}
     if(key==='direction') { if(!['up','down'].includes(raw[key]))throw Error('Ungültige Richtung'); result[key]=raw[key]; continue; }
     if(key==='pressureUnit'){if(!PRESSURE.units[raw[key]])throw Error('Unbekannte Druckeinheit');result[key]=raw[key];continue;}
     if(key==='pressureReference'){if(!['gauge','absolute'].includes(raw[key]))throw Error('Unbekannter Druckbezug');result[key]=raw[key];continue;}
     if(raw[key]===null || raw[key]==='')throw Error('Leerer Parameter: '+key);
-    const v=Number(raw[key]); if(!Number.isFinite(v)) throw Error('Ungültiger Zahlenwert für '+key);
+    const v=DECIMAL.parse(raw[key]); if(v===null) throw Error('Ungültiger Zahlenwert für '+key);
     const limits=ranges[key];if(limits&& (v<limits[0]||v>limits[1]))throw Error('Ausserhalb Bereich: '+key);
     result[key]=v;
   }
+  // Accept older profiles that only stored the PTC enabled flag.
+  if(!Object.prototype.hasOwnProperty.call(raw,'tempResistorMode'))result.tempResistorMode=result.ptcEnabled?'ptc':'off';
+  result.ptcEnabled=result.tempResistorMode==='ptc';
   if(!PRESSURE.validRange(result.pressureMin,result.pressureMax,result.pressureUnit))throw Error('Druckmessbereich ungültig');
   if(!(result.temperatureMin>=-40&&result.temperatureMax<=125&&result.temperatureMax>result.temperatureMin))throw Error('Temperaturmessbereich ungültig');
   if('pressureValue' in raw){
@@ -81,51 +86,66 @@ function render(){
   $('temperatureMetric').textContent=num(state.temperature,1)+' °C';
   $('physicalPressureMetric').textContent=Number(state.pressureValue).toLocaleString('de-CH',{maximumFractionDigits:5})+' '+state.pressureUnit;
   $('r1').textContent=num(m.r1,2)+' Ω';$('r2').textContent=num(m.r2,2)+' Ω';$('r3').textContent=num(m.r3,2)+' Ω';$('r4').textContent=num(m.r4,2)+' Ω';
-  $('rin').textContent=num(m.rin/1000,3)+' kΩ';$('vcm').textContent=num(m.vcm,3)+' V';$('ptcState').textContent=state.ptcEnabled?'An':'Aus';
+  $('rin').textContent=num(m.rin/1000,3)+' kΩ';$('vcm').textContent=num(m.vcm,3)+' V';$('ptcState').textContent=m.elementMode==='off'?'Aus':m.elementMode.toUpperCase();
   $('bridgeText').textContent=num(state.bridgeResistance/1000,3)+' kΩ · mathematisch';
-  $('ptcHint').textContent=state.ptcEnabled?`PTC-Modell: ${num(m.ptcR,1)} Ω; idealer Strom gesamt: ${num(m.totalCurrentMilliAmp,4)} mA. Realer Brückenstrom hängt von den Shunts ab.`:'PTC-Zweig getrennt. Keine zusätzliche Stromaufnahme im mathematischen Modell.';
+  $('ptcHint').textContent=m.elementMode!=='off'?
+    `${m.elementMode.toUpperCase()} bei ${num(state.temperature,2)} °C: ${num(m.elementR,2)} Ω; idealer Gesamtstrom: ${num(m.totalCurrentMilliAmp,5)} mA. Noch keine reale Hardwareansteuerung.`:
+    'Temperaturwiderstand deaktiviert. Nur der mathematische Brückenstrom wird berücksichtigt.';
   if(!m.resistanceValid)uiNotice('Warnung: Die gewählte Ausgangsspannung ist mit der idealen passiven Brücke nicht darstellbar.','error');
-  else if(!m.ptcValid)uiNotice('Warnung: Der PTC-Widerstand wird bei dieser Temperatur negativ oder null.','error');
+  else if(!m.elementValid)uiNotice('Warnung: Der Temperaturwiderstand ist bei diesen Einstellungen nicht physikalisch gültig.','error');
   else if(!m.spanValid)uiNotice('Warnung: TKE und Krümmung führen zu negativer Signalspanne.','error');
   renderChart();
   renderExpectedResults();
   renderPointResults();
 }
+// Do not rewrite a focused decimal field during typing: e.g. 2, / 0. / -0,5.
 function syncForm(){
- for(const key of Object.keys(ranges)){const input=$(key),nr=$(key+'Number');if(input)input.value=state[key];if(nr)nr.value=state[key];}
- $('ptcEnabled').checked=state.ptcEnabled;$('direction').value=state.direction;
- for(const key of ['pressureMin','pressureMax','temperatureMin','temperatureMax'])$(key).value=state[key];
+ const update=(element,value)=>{
+   if(!element)return;
+   if(element===document.activeElement && element.type==='text' && element.inputMode==='decimal')return;
+   element.value=String(value);
+ };
+ for(const key of Object.keys(ranges)){
+   const input=$(key),nr=$(key+'Number');update(input,state[key]);update(nr,state[key]);
+ }
+ $('direction').value=state.direction;
+ $('tempResistorMode').value=state.tempResistorMode;
+ $('ptcParameters').hidden=state.tempResistorMode!=='ptc';
+ $('ntcParameters').hidden=state.tempResistorMode!=='ntc';
+ for(const key of ['pressureMin','pressureMax','temperatureMin','temperatureMax'])update($(key),state[key]);
  $('pressureUnit').value=state.pressureUnit;$('pressureReference').value=state.pressureReference;
  $('pressureMinUnit').textContent=state.pressureUnit;$('pressureMaxUnit').textContent=state.pressureUnit;$('pressureActualUnit').textContent=state.pressureUnit;
- $('pressureActualNumber').value=Number(state.pressureValue.toPrecision(12));
+ update($('pressureActualNumber'),Number(state.pressureValue.toPrecision(12)));
  const range=$('pressureActual');range.min=state.pressureMin;range.max=state.pressureMax;
  range.step=String(Math.max(0.000000001,(state.pressureMax-state.pressureMin)/10000));
  range.value=state.pressureValue;
  $('temperature').min=state.temperatureMin;$('temperature').max=state.temperatureMax;
  $('temperatureNumber').min=state.temperatureMin;$('temperatureNumber').max=state.temperatureMax;
- $('pressureConversion').textContent=Number(state.pressureValue).toLocaleString('de-CH',{maximumFractionDigits:5})+' '+state.pressureUnit+' = '+num(state.pressure,2)+' % FS · '+num(state.temperature,1)+' °C';
+ $('pressureConversion').textContent=Number(state.pressureValue).toLocaleString('de-CH',{maximumFractionDigits:5})+' '+state.pressureUnit+' = '+num(state.pressure,2)+' % FS · '+num(state.temperature,2)+' °C';
  render();
 }
 function updateValue(key,val){
- if(key==='ptcEnabled')state[key]=Boolean(val);
- else{
-  const n=Number(val);if(!Number.isFinite(n))return;
-  const [lo,hi]=ranges[key];state[key]=clamp(n,lo,hi);
-  if(key==='pressure')state.pressureValue=PRESSURE.physical(state.pressure,state.pressureMin,state.pressureMax);
-  if(key==='temperature')state.temperature=clamp(state.temperature,state.temperatureMin,state.temperatureMax);
- }
+ const n=DECIMAL.parse(val);
+ if(n===null)return false;
+ const limits=ranges[key];if(!limits)return false;
+ state[key]=clamp(n,limits[0],limits[1]);
+ if(key==='pressure')state.pressureValue=PRESSURE.physical(state.pressure,state.pressureMin,state.pressureMax);
+ if(key==='temperature')state.temperature=clamp(state.temperature,state.temperatureMin,state.temperatureMax);
  syncForm();
+ return true;
 }
 function setPhysicalPressure(raw){
- if(raw==='')return;
- const number=Number(raw);if(!Number.isFinite(number))return;
+ const number=DECIMAL.parse(raw);if(number===null)return false;
  state.pressureValue=clamp(number,state.pressureMin,state.pressureMax);
  state.pressure=PRESSURE.percent(state.pressureValue,state.pressureMin,state.pressureMax);
  syncForm();
+ return true;
 }
 function setPhysicalRange(){
- const pMin=Number($('pressureMin').value),pMax=Number($('pressureMax').value);
- const tMin=Number($('temperatureMin').value),tMax=Number($('temperatureMax').value);
+ const inputs=['pressureMin','pressureMax','temperatureMin','temperatureMax'];
+ const parsed=inputs.map(id=>DECIMAL.parse($(id).value));
+ if(parsed.some(v=>v===null)){uiNotice('Bitte gültige Zahlen eingeben, z. B. 3,5 oder 3.5.','error');syncForm();return;}
+ const [pMin,pMax,tMin,tMax]=parsed;
  if(!PRESSURE.validRange(pMin,pMax,state.pressureUnit)){
    uiNotice('Druckbereich ungültig: Maximaldruck muss höher sein als Minimaldruck (Betrag maximal 1 GPa).','error');syncForm();return;
  }
@@ -157,18 +177,41 @@ function switchPressureUnit(unit){
   uiNotice('Druckeinheit in '+unit+' umgerechnet. Der tatsächliche Druck und das Signal bleiben gleich.');
  }catch(err){uiNotice('Umrechnung fehlgeschlagen: '+err.message,'error');syncForm();}
 }
-for(const key of Object.keys(ranges))for(const id of [key,key+'Number']){const el=$(id);if(el)el.addEventListener('input',e=>updateValue(key,e.target.value));}
-$('ptcEnabled').addEventListener('change',e=>updateValue('ptcEnabled',e.target.checked));
-$('pressureActual').addEventListener('input',e=>setPhysicalPressure(e.target.value));
-$('pressureActualNumber').addEventListener('change',e=>setPhysicalPressure(e.target.value));
-for(const key of ['pressureMin','pressureMax','temperatureMin','temperatureMax'])$(key).addEventListener('change',setPhysicalRange);
-$('pressureUnit').addEventListener('change',e=>switchPressureUnit(e.target.value));
-$('pressureReference').addEventListener('change',e=>{state.pressureReference=e.target.value;syncForm();});
-$('direction').addEventListener('change',e=>{state.direction=e.target.value;render();});
+// Sliders update live. Decimal text fields commit on blur/Enter, avoiding
+// cursor jumps and incomplete numbers while the user is typing.
+for(const key of Object.keys(ranges)){
+ const slider=$(key),numeric=$(key+'Number');
+ if(slider)slider.addEventListener(slider.type==='range'?'input':'change',event=>{
+   if(slider.type==='range'||DECIMAL.complete(event.target.value))updateValue(key,event.target.value);
+ });
+ if(numeric)numeric.addEventListener('change',event=>{
+   if(!DECIMAL.complete(event.target.value)||!updateValue(key,event.target.value))
+     uiNotice('Ungültiger Wert. Bitte Komma oder Punkt als Dezimalzeichen verwenden.','error');
+   // Input is corrected to the accepted numeric value after commit.
+   numeric.value=state[key];
+ });
+}
+$('tempResistorMode').addEventListener('change',event=>{
+ state.tempResistorMode=event.target.value;
+ state.ptcEnabled=state.tempResistorMode==='ptc';syncForm();
+});
+$('pressureActual').addEventListener('input',event=>setPhysicalPressure(event.target.value));
+$('pressureActualNumber').addEventListener('change',event=>{
+ if(!DECIMAL.complete(event.target.value)||!setPhysicalPressure(event.target.value))
+   uiNotice('Ungültiger Druckwert: bitte z. B. 6,5 oder 6.5 eingeben.','error');
+ $('pressureActualNumber').value=Number(state.pressureValue.toPrecision(12));
+});
+for(const key of ['pressureMin','pressureMax','temperatureMin','temperatureMax'])$(key).addEventListener('change',()=>{
+ setPhysicalRange();
+ // Commit normalisation happens after leaving the field.
+});
+$('pressureUnit').addEventListener('change',event=>switchPressureUnit(event.target.value));
+$('pressureReference').addEventListener('change',event=>{state.pressureReference=event.target.value;syncForm();});
+$('direction').addEventListener('change',event=>{state.direction=event.target.value;render();});
 document.querySelectorAll('[data-pressure]').forEach(b=>b.addEventListener('click',()=>updateValue('pressure',Number(b.dataset.pressure))));
 $('resetBtn').addEventListener('click',()=>{state={...defaults};expectedLimits={};testPoints=CHAR.defaultTestPoints().map((p,i)=>({...p,pressureValue:PRESSURE.physical(p.pressure,0,10),id:i+1}));nextPointId=testPoints.length+1;profileName='Neues Sensorprofil';$('profileName').value=profileName;renderExpectedRows();renderPointRows();syncForm();uiNotice('Standardprofil wiederhergestellt. Keine Hardwareänderung.')});
 function snapshotProfile(){
- return {schema:'sensorbridge-profile/v3',name:profileName,parameters:{...state},
+ return {schema:'sensorbridge-profile/v4',name:profileName,parameters:{...state},
   expectedLimits:JSON.parse(JSON.stringify(expectedLimits)),
   testPoints:testPoints.map(({id,...p})=>({...p}))};
 }
@@ -223,14 +266,14 @@ async function send(){
    const fields=['excitation','span','offset','pressure','temperature','tk0','tke','nonlinearity','drift','ptcEnabled','ptcR25','ptcPpm'];
    for(let i=0;i<fields.length;i++){
      // Short one-setting command (~18 bytes), works on conservative BLE MTUs.
-     const val=fields[i]==='ptcEnabled'?(state.ptcEnabled?1:0):state[fields[i]];
+     const val=fields[i]==='ptcEnabled'?(state.tempResistorMode==='ptc'?1:0):state[fields[i]];
      const payload='0123456789ab'[i]+'='+String(val);
      const encoded=new TextEncoder().encode(payload);
      if(encoded.length>20)throw Error('BLE-Wert zu gross ('+fields[i]+')');
      await writeCharacteristic.writeValueWithResponse(encoded);
    }
    await readStatus();
-   uiNotice('Nur 12 Basisparameter an BLE-Prototyp übertragen. Gain, Hysterese, TKE-/TK0-Krümmung, Kriechen und Prüfpunkte bleiben ausschliesslich in der Simulation. Kein analoger Ausgang.');
+   uiNotice('12 Basisparameter an BLE-Prototyp übertragen. NTC, Gain, Hysterese und Kennlinien bleiben Simulation. Kein analoger Ausgang.');
  }catch(err){uiNotice('Befehl fehlgeschlagen: '+err.message,'error');}
 }
 
