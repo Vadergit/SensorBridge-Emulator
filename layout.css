@@ -945,3 +945,48 @@ footer { margin-top: 15px; padding-block: 12px; }
   .hub-precision-grid > div { padding: 7px; }
   .hub-precision-grid strong { font-size: 15px; }
 }
+
+
+/* v0.9: Sensor-oriented resolution after configuring offset, gain, span and temperature. */
+.resolution-context,.resolution-ideal-reference{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:8px;
+ margin:11px 0;
+}
+.resolution-context{grid-template-columns:repeat(4,minmax(0,1fr));}
+.resolution-context>div,.resolution-ideal-reference>div{
+ min-width:0;
+ background:var(--subtle);
+ border:1px solid var(--line);
+ border-radius:7px;
+ padding:9px 11px;
+}
+.resolution-context small,.resolution-ideal-reference small{
+ display:block;color:var(--muted);font-size:10px;line-height:1.35;
+}
+.resolution-context strong,.resolution-ideal-reference strong{
+ display:block;font-size:15px;font-variant-numeric:tabular-nums;
+ margin-top:4px;overflow-wrap:anywhere;line-height:1.4;
+}
+.resolution-ideal-reference strong{color:var(--blue);}
+.resolution-ideal-reference span{display:block;font-size:10px;color:var(--muted);line-height:1.5;margin-top:4px;}
+.setpoint-table-scroll{overflow-x:auto;margin:10px 0;}
+.setpoint-step-table{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums;}
+.setpoint-step-table thead{background:var(--subtle);}
+.setpoint-step-table th,.setpoint-step-table td{
+ border-bottom:1px solid var(--line);text-align:left;vertical-align:middle;
+ padding:8px 10px;
+}
+.setpoint-step-table th{font-size:10px;color:var(--muted);font-weight:700;white-space:nowrap;}
+.setpoint-step-table td:first-child{font-weight:700;}
+.setpoint-step-table td{white-space:nowrap;}
+.setpoint-step-table tbody tr:last-child td{border-bottom:0;}
+.setpoint-step-table tbody tr:hover{background:var(--hover);}
+.resolution-advanced{margin-top:14px;border:1px solid var(--line);padding:10px 12px;border-radius:8px;}
+.resolution-advanced>summary{font-size:12px;font-weight:650;color:var(--muted);}
+.resolution-advanced[open]>summary{margin-bottom:10px;}
+@media(max-width:1100px){.resolution-context{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:480px){.resolution-context,.resolution-ideal-reference{grid-template-columns:1fr 1fr;gap:6px;}
+ .resolution-context strong,.resolution-ideal-reference strong{font-size:13px;}
+ .setpoint-step-table th,.setpoint-step-table td{padding:7px;}}
