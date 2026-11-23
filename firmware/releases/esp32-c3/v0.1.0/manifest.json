@@ -1,0 +1,1 @@
+{"name":"SensorBridge Emulator · ESP32-C3 SuperMini","version":"0.1.0-lab-BLE-only","new_install_prompt_erase":true,"builds":[{"chipFamily":"ESP32-C3","parts":[{"path":"sensorbridge-esp32c3.bin","offset":0}]}]}
