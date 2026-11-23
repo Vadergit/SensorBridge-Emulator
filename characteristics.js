@@ -8,7 +8,7 @@ const extraDefaults=Object.freeze({
   bridgeGain:1, bridgeResistance:10000, direction:'up',
   hysteresis:0, tk0Quadratic:0, tkeQuadratic:0,
   creepPercentFS:0, creepTauS:60, elapsedSeconds:0,
-  pressureMin:0, pressureMax:10, pressureValue:5, pressureUnit:'bar', pressureReference:'gauge',
+  pressureMin:0, pressureMax:100, pressureValue:50, pressureUnit:'percent', pressureReference:'gauge',
   temperatureMin:-40, temperatureMax:125
 });
 const extraRanges=Object.freeze({
