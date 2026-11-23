@@ -23,3 +23,18 @@ See [Protocol](../../docs/PROTOCOL.md). Each characteristic write is a compact c
 ## Next milestone
 
 After electrical design review: implement SPI isolation, nine AD5270 drivers, verified analogue power sequencing, output ADC, checksum/calibration lookup, safe disconnect interlocks and a hardware-enabled state.
+
+## USB-Firmwareupdate aus der Weboberfläche (ESP Web Tools)
+
+Die SensorBridge-Webseite besitzt unter **Firmwareupdate** einen USB-Installer für den ESP32-C3 SuperMini. Der Installer verwendet **esp-web-tools@10.5.2**, also denselben Ansatz wie der ELMOS-Konfigurator.
+
+Ein GitHub-Actions-Workflow (`.github/workflows/build-esp32c3.yml`) kompiliert die BLE-Testfirmware und veröffentlicht die Dateien hier:
+
+- `firmware/releases/esp32-c3/v0.1.0/sensorbridge-esp32c3.bin`
+- `firmware/releases/esp32-c3/v0.1.0/manifest.json`
+
+Beim Laden der Webseite wird zunächst geprüft, ob sowohl das Manifest als auch das BIN-Image verfügbar sind. Nur dann wird die USB-Installation freigeschaltet.
+
+**Wichtig:** Das Bundle enthält Bootloader, Partitionstabelle und Programm für einen ESP32-C3 SuperMini mit nominell 4 MB Flash. Vor dem Flashen ggf. die Platinenvariante und den Boot-Modus überprüfen. Beim USB-Flashen kann die bestehende Firmware überschrieben werden. Die aktuelle Version enthält ausschliesslich ein BLE-GATT-Demo und steuert **keine reale Analogelektronik** an.
+
+Das USB-Flashen wurde hier noch nicht an einer physischen ESP32-C3-Platine durchgeführt. Der GitHub Actions Firmware-Build wurde erfolgreich abgeschlossen.
