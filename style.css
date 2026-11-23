@@ -3,3 +3,33 @@
 footer nav{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 footer nav a{color:var(--teal);text-decoration:none;white-space:nowrap}
 footer nav a:hover,footer nav a:focus-visible{text-decoration:underline}
+
+/* Sensor-characterisation workspace */
+.violet{background:#ce9aff}
+.controls .parameter-section{margin-top:5px}
+.controls .parameter-section .hint{margin:12px 0}
+.advanced select{width:100%;background:#1b2b3b;color:var(--text);border:1px solid #3a5266;border-radius:7px;padding:8px}
+.specifications{margin-top:18px}
+.specifications h2{margin:0;font-size:18px}
+.specifications .eyebrow{margin:0}
+.spec-top{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;margin:16px 0}
+.profile-label{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:650}
+.profile-label input{background:#1b2b3b;color:var(--text);border:1px solid #3a5266;border-radius:7px;padding:8px;width:min(360px,65vw)}
+.spec-summary{font-size:12px;color:var(--teal);border:1px solid #38625d;border-radius:7px;padding:7px 12px}
+.table-scroll{overflow-x:auto;margin-top:14px;border:1px solid var(--line);border-radius:9px}
+.data-table{border-collapse:collapse;width:100%;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.data-table th{background:#172739;text-align:left;color:#aebfcf;font-size:11px;font-weight:650}
+.data-table th,.data-table td{padding:9px 11px;border-bottom:1px solid #2a3d4c}
+.data-table tbody tr:last-child td{border-bottom:0}
+.data-table tbody tr:hover{background:#172536}
+.data-table input[type=number],.data-table select{background:#1d3040;color:var(--text);border:1px solid #3a5164;border-radius:6px;padding:6px 7px;width:110px;font:inherit}
+.data-table select{min-width:113px}
+.data-table .value{font-weight:650;color:#e9f3f7}
+.data-table .unit{color:var(--muted);font-size:11px;margin-left:3px}
+.data-table .measure{display:flex;align-items:center;gap:5px}
+.data-table .mini{padding:5px 9px;font-size:11px}
+.status-pill{font-size:11px;font-weight:650;color:#a6b8c7}
+.status-pill.pass{color:#56ddba}.status-pill.fail,.status-pill.invalid{color:#ff9494}
+.compact-actions{margin:0}
+.compact-actions button{flex:initial}
+@media(max-width:650px){.spec-top{align-items:start}.profile-label{display:flex;align-items:start;flex-direction:column}.profile-label input{width:min(100%,350px)}.specifications{padding:14px}.compact-actions{flex-wrap:wrap}}
