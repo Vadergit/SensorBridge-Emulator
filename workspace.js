@@ -91,7 +91,7 @@
   });
   $('pressureUnit').addEventListener('change',()=>{
     $('setpointUnit').value=$('pressureUnit').value;
-    if($('pressureUnit').value==='percent')$('setpointMode').value='percent';
+    $('setpointMode').value=$('pressureUnit').value==='percent'?'percent':'physical';
     modeUpdate();
   });
   modeUpdate();
