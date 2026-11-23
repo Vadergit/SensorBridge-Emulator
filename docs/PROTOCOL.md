@@ -16,13 +16,15 @@ Device name: `SensorBridge-C3`.
 
 ### Compact one-parameter command frames
 
-Each parameter is sent separately using a short JSON command, so a single write is typically ≤20 bytes even with a small BLE ATT MTU:
+To fit even a basic 20-byte ATT write payload, each parameter is transmitted as a short ASCII frame:
 
-```json
-{"v":1,"k":"3","x":50}
+```
+3=50
+2=-700
+1=2.5
 ```
 
-The letter/digit key maps to a parameter:
+A frame consists of a **single-character parameter key**, an equals sign, and a finite decimal number. UTF-8 encoded, no trailing newline. It is an experimental protocol v1, not a security-sensitive or safety-certified industrial control protocol.
 
 | key | parameter |
 |---|---|
@@ -39,7 +41,7 @@ The letter/digit key maps to a parameter:
 | a | PTC resistance at 25°C, Ω |
 | b | PTC coefficient ppm/K |
 
-The browser sends **12 writes sequentially**. This is an early transport: an interrupted connection may result in a partially updated profile. Use a future atomic commit/sequence-number protocol before allowing real analogue outputs or automated calibration.
+The browser sends **12 writes sequentially**. A lost connection can leave a partially updated profile in the ESP32 RAM. Future firmware must add an atomic commit/sequence and analogue-output readback before controlling actual hardware.
 
 ### Read status
 
