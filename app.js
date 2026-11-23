@@ -129,6 +129,7 @@ function syncForm(){
  $('pressureConversion').textContent=state.pressureUnit==='percent'
  ?num(state.pressure,2)+' % FS · '+num(state.temperature,2)+' °C'
  :Number(state.pressureValue).toLocaleString('de-CH',{maximumFractionDigits:5})+' '+state.pressureUnit+' = '+num(state.pressure,2)+' % FS · '+num(state.temperature,2)+' °C';
+ window.SensorBridgeWorkspace?.modeUpdate();
  render();
 }
 function updateValue(key,val){
