@@ -167,23 +167,35 @@ $('pressureReference').addEventListener('change',e=>{state.pressureReference=e.t
 $('direction').addEventListener('change',e=>{state.direction=e.target.value;render();});
 document.querySelectorAll('[data-pressure]').forEach(b=>b.addEventListener('click',()=>updateValue('pressure',Number(b.dataset.pressure))));
 $('resetBtn').addEventListener('click',()=>{state={...defaults};expectedLimits={};testPoints=CHAR.defaultTestPoints().map((p,i)=>({...p,pressureValue:PRESSURE.physical(p.pressure,0,10),id:i+1}));nextPointId=testPoints.length+1;profileName='Neues Sensorprofil';$('profileName').value=profileName;renderExpectedRows();renderPointRows();syncForm();uiNotice('Standardprofil wiederhergestellt. Keine Hardwareänderung.')});
+function snapshotProfile(){
+ return {schema:'sensorbridge-profile/v3',name:profileName,parameters:{...state},
+  expectedLimits:JSON.parse(JSON.stringify(expectedLimits)),
+  testPoints:testPoints.map(({id,...p})=>({...p}))};
+}
+function loadProfile(incoming){
+ const params=validate(incoming.parameters||incoming);
+ const limits=parseExpectedLimits(incoming.expectedLimits||{});
+ const points=incoming.testPoints===undefined
+   ?CHAR.defaultTestPoints().map(p=>({...p,pressureValue:PRESSURE.physical(p.pressure,params.pressureMin,params.pressureMax)}))
+   :parseTestPoints(incoming.testPoints,params);
+ state=params;expectedLimits=limits;testPoints=points.map((p,i)=>({...p,id:i+1}));
+ nextPointId=testPoints.length+1;
+ profileName=typeof incoming.name==='string'?incoming.name.slice(0,100):'Importiertes Sensorprofil';
+ $('profileName').value=profileName;
+ renderExpectedRows();renderPointRows();syncForm();
+ window.SensorBridgeWorkspace?.modeUpdate();
+ uiNotice('Profil geladen: '+profileName+' (Simulation; keine Hardwareänderung).');
+}
+window.SensorBridgeProfileAPI=Object.freeze({snapshot:snapshotProfile,load:loadProfile});
 $('saveBtn').addEventListener('click',()=>{
- const payload={schema:'sensorbridge-profile/v3',name:profileName,parameters:state,expectedLimits,testPoints:testPoints.map(({id,...p})=>p)};
+ const payload=snapshotProfile();
  const a=document.createElement('a'),blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
  a.href=URL.createObjectURL(blob);a.download='sensorbridge-profile.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 });
 $('importFile').addEventListener('change',async e=>{
  const file=e.target.files?.[0];if(!file)return;
- try{
-  const incoming=JSON.parse(await file.text()),params=validate(incoming.parameters||incoming);
-  const limits=parseExpectedLimits(incoming.expectedLimits||{});
-  const points=incoming.testPoints===undefined?CHAR.defaultTestPoints().map(p=>({...p,pressureValue:PRESSURE.physical(p.pressure,params.pressureMin,params.pressureMax)})):parseTestPoints(incoming.testPoints,params);
-  state=params;expectedLimits=limits;testPoints=points.map((p,i)=>({...p,id:i+1}));nextPointId=testPoints.length+1;
-  profileName=typeof incoming.name==='string'?incoming.name.slice(0,100):'Importiertes Sensorprofil';
-  $('profileName').value=profileName;
-  renderExpectedRows();renderPointRows();syncForm();
-  uiNotice('Sensorprofil geladen: '+profileName+' (Simulation; keine Hardwareänderung).');
- }catch(err){uiNotice('Profil konnte nicht geladen werden: '+err.message,'error');}
+ try{loadProfile(JSON.parse(await file.text()));}
+ catch(err){uiNotice('Profil konnte nicht geladen werden: '+err.message,'error');}
  e.target.value='';
 });
 
