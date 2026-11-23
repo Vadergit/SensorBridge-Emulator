@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <NimBLEDevice.h>
-#include <ArduinoJson.h>
+#include <cstdlib>\n#include <cstring>\n#include <cmath>
 
 // EXPERIMENTAL BLE TRANSPORT ONLY.
 // No GPIO driving the bridge, no AD5270 SPI writes, no analogue output enabling.
@@ -25,20 +25,15 @@ void publishStatus() {
 class CommandCallbacks final : public NimBLECharacteristicCallbacks {
   void onWrite(NimBLECharacteristic* characteristic, NimBLEConnInfo& connInfo) override {
     const std::string message = characteristic->getValue();
-    StaticJsonDocument<128> parsed; // ArduinoJson 6-style API (supported in 6.x)
-    const DeserializationError error = deserializeJson(parsed, message);
-    if(error || parsed["v"] != 1 || !parsed["k"].is<const char*>() || !(parsed["x"].is<double>() || parsed["x"].is<float>() || parsed["x"].is<int>() || parsed["x"].is<long>())) {
-      Serial.println("Invalid BLE command");
-      publishStatus();
-      return;
-    }
-    const char* key = parsed["k"];
-    if(strlen(key)!=1) return;
-    const char* matched = strchr(keys, key[0]);
+    // Compact ASCII command: "<key>=<number>", e.g. "3=50".
+    if(message.size()<3 || message[1]!='=' || message.size()>20) return;
+    const char* matched = strchr(keys, message[0]);
     if(!matched) return;
-    const int index = matched-keys;
-    const double value = parsed["x"].as<double>();
-    if(!isfinite(value))return;
+    const int index = static_cast<int>(matched-keys);
+    const char* number = message.c_str()+2;
+    char* tail = nullptr;
+    const double value = strtod(number, &tail);
+    if(tail==number || !tail || *tail!='\\0' || !std::isfinite(value)) return;
     // Bounds check each physical parameter.
     const double minValues[] = {0.1,1,-1000,0,-40,-5000,-50000,-20,-100000,0,100,-10000};
     const double maxValues[] = {5.5,4,1000,100,125,5000,50000,20,100000,1,1e7,20000};
