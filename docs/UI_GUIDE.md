@@ -7,7 +7,7 @@ Das neue **Control Center** übernimmt die visuelle Grundlinie des ELMOS E703.11
 | Menü | Funktion |
 |---|---|
 | Übersicht | Signal, Druck, Temperatur, Sensorprofil und nächster Arbeitsschritt |
-| Sensor definieren | Druckmessbereich, Temperaturbereich, Brückenspanne und Gain, TK0/TKE, Hysterese, Drift, Kriechen, PTC |
+| Sensor definieren | Druckmessbereich, Temperaturbereich, Brückenspanne und Gain, TK0/TKE, Hysterese, Drift, Kriechen, PTC / NTC |
 | Emulation | Aktuell anliegenden Druck und Temperatur direkt einstellen; BLE-Gerät ansprechen |
 | Kennlinien & Eckpunkte | Berechnete Temperaturkennlinien, Auf-/Ab-Hysterese, erwartete Grenzwerte und Prüfpunkt-Tabelle |
 | Profile | Sensorprofile als JSON importieren/exportieren und lokal im Browser speichern/laden |
@@ -68,3 +68,12 @@ Der Installationsknopf wird erst aktiviert, wenn **Manifest und Firmware-Binärd
 - [BLE-Protokoll](PROTOCOL.md)
 - [Hardwarekonzept](CONCEPT.md)
 - [Firmware-Build](../firmware/esp32_c3/README.md)
+
+## v0.5: Aufgeräumte Eingaben und NTC
+
+Alle Felder verwenden einheitliche Höhen, Abstände und Schriftgrössen, mit zwei oder drei Spalten je nach Bereich und Bildschirmbreite. Die Eingabe akzeptiert **3,5** oder **3.5**. Werte werden beim Verlassen des Feldes übernommen, damit unvollständige Dezimalzahlen nicht mitten in der Eingabe zurückspringen. Unter **Sensor definieren → Temperaturwiderstand** wählt man **Aus / PTC / NTC**.
+
+- PTC: Widerstand R25 und linearer Temperaturkoeffizient ppm/K.
+- NTC: Widerstand R25 und Beta-Wert in K.
+
+Die Auswertung ist ein mathematisches Modell. NTC/AD5270 sind in der realen Firmware noch nicht umgesetzt. Die aktuelle BLE-Demofirmware unterstützt weiterhin nur 12 Basiseinstellungen.
