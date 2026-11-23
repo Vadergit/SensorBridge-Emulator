@@ -85,7 +85,7 @@ function render(){
   $('excMetric').innerHTML=num(state.excitation,3)+' <em>V</em>';
   $('conditionMetric').innerHTML=num(state.pressure,1)+' <em>%</em>';
   $('temperatureMetric').textContent=num(state.temperature,1)+' °C';
-  $('physicalPressureMetric').textContent=Number(state.pressureValue).toLocaleString('de-CH',{maximumFractionDigits:5})+' '+state.pressureUnit;
+  $('physicalPressureMetric').textContent=Number(state.pressureValue).toLocaleString('de-CH',{maximumFractionDigits:5})+' '+(state.pressureUnit==='percent'?'%':state.pressureUnit);
   $('r1').textContent=num(m.r1,2)+' Ω';$('r2').textContent=num(m.r2,2)+' Ω';$('r3').textContent=num(m.r3,2)+' Ω';$('r4').textContent=num(m.r4,2)+' Ω';
   $('rin').textContent=num(m.rin/1000,3)+' kΩ';$('vcm').textContent=num(m.vcm,3)+' V';$('ptcState').textContent=m.elementMode==='off'?'Aus':m.elementMode.toUpperCase();
   $('bridgeText').textContent=num(state.bridgeResistance/1000,3)+' kΩ · mathematisch';
@@ -116,7 +116,8 @@ function syncForm(){
  for(const key of ['pressureMin','pressureMax','temperatureMin','temperatureMax'])update($(key),state[key]);
  $('pressureUnit').value=state.pressureUnit;$('pressureReference').value=state.pressureReference;
  $('pressureReference').disabled=state.pressureUnit==='percent';
- $('pressureMinUnit').textContent=state.pressureUnit;$('pressureMaxUnit').textContent=state.pressureUnit;$('pressureActualUnit').textContent=state.pressureUnit;
+ const unitLabel=state.pressureUnit==='percent'?'%':state.pressureUnit;
+ $('pressureMinUnit').textContent=unitLabel;$('pressureMaxUnit').textContent=unitLabel;$('pressureActualUnit').textContent=unitLabel;
  update($('pressureActualNumber'),Number(state.pressureValue.toPrecision(12)));
  const range=$('pressureActual');range.min=state.pressureMin;range.max=state.pressureMax;
  range.step=String(Math.max(0.000000001,(state.pressureMax-state.pressureMin)/10000));
@@ -232,7 +233,7 @@ $('pressureUnit').addEventListener('change',event=>switchPressureUnit(event.targ
 $('pressureReference').addEventListener('change',event=>{state.pressureReference=event.target.value;syncForm();});
 $('direction').addEventListener('change',event=>{state.direction=event.target.value;render();});
 document.querySelectorAll('[data-pressure]').forEach(b=>b.addEventListener('click',()=>updateValue('pressure',Number(b.dataset.pressure))));
-$('resetBtn').addEventListener('click',()=>{state={...defaults};expectedLimits={};testPoints=CHAR.defaultTestPoints().map((p,i)=>({...p,pressureValue:PRESSURE.physical(p.pressure,0,100),id:i+1}));nextPointId=testPoints.length+1;profileName='Neues Sensorprofil';$('profileName').value=profileName;renderExpectedRows();renderPointRows();syncForm();uiNotice('Standardprofil wiederhergestellt. Keine Hardwareänderung.')});
+$('resetBtn').addEventListener('click',()=>{state={...defaults};lastPhysicalSelection={unit:'bar',min:0,max:10};expectedLimits={};testPoints=CHAR.defaultTestPoints().map((p,i)=>({...p,pressureValue:PRESSURE.physical(p.pressure,0,100),id:i+1}));nextPointId=testPoints.length+1;profileName='Neues Sensorprofil';$('profileName').value=profileName;renderExpectedRows();renderPointRows();syncForm();uiNotice('Standardprofil wiederhergestellt. Keine Hardwareänderung.')});
 function snapshotProfile(){
  return {schema:'sensorbridge-profile/v4',name:profileName,parameters:{...state},
   expectedLimits:JSON.parse(JSON.stringify(expectedLimits)),
