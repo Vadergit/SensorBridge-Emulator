@@ -1,47 +1,71 @@
 <!doctype html>
-<html lang="de-CH">
+<html lang="de-CH" data-theme="light">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101927">
-  <title>SensorBridge Emulator · Control Console</title>
-  <link rel="stylesheet" href="./style.css">
-  <script defer src="./pressure-units.js"></script>
-  <script defer src="./characteristics.js"></script>
-  <script defer src="./profiles-ui.js"></script>
-  <script defer src="./app.js"></script>
-</head>
-<body>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#eaf0f5">
+<meta name="description" content="SensorBridge Emulator – Web Bluetooth Sensorbrückensimulation">
+<title>SensorBridge Emulator · Control Center</title>
+<script>try {document.documentElement.dataset.theme=localStorage.getItem('sensorbridge-theme-v1')==='dark'?'dark':'light'}catch(e){}</script>
+<link rel="stylesheet" href="./style.css">
+<script defer src="./pressure-units.js"></script>
+<script defer src="./characteristics.js"></script>
+<script defer src="./profiles-ui.js"></script>
+<script defer src="./workspace.js"></script>
+<script defer src="./app.js"></script>
+<script defer src="./firmware-ui.js"></script>
+</head><body>
+<div class="app-shell">
+<aside class="sidebar" id="sidebar">
+  <div class="side-brand"><div class="symbol-logo">◈</div><div><strong>SensorBridge</strong><small>EMULATOR</small></div></div>
+  <p class="side-group-label">ARBEITSPLATZ</p>
+  <nav class="sidebar-nav" aria-label="Hauptnavigation">
+    <button type="button" class="nav-button active" data-view="dashboard" aria-current="page"><span>⌂</span>Übersicht</button>
+    <button type="button" class="nav-button" data-view="sensor"><span>◧</span>Sensor definieren</button>
+    <button type="button" class="nav-button" data-view="emulator"><span>∿</span>Emulation</button>
+    <button type="button" class="nav-button" data-view="characteristics"><span>⌁</span>Kennlinien & Eckpunkte</button>
+  </nav>
+  <p class="side-group-label">VERWALTUNG</p>
+  <nav class="sidebar-nav" aria-label="Verwaltung">
+    <button type="button" class="nav-button" data-view="profiles"><span>▤</span>Profile</button>
+    <button type="button" class="nav-button" data-view="firmware"><span>↟</span>Firmwareupdate</button>
+    <button type="button" class="nav-button" data-view="settings"><span>⚙</span>Einstellungen</button>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="sidebar-info"><span class="soft-dot"></span><span id="sidebarDevice">Offline · Demo-Modus</span></div>
+    <small>v0.4 · Laborsoftware</small>
+    <a href="https://github.com/Vadergit/SensorBridge-Emulator" target="_blank" rel="noopener noreferrer">GitHub-Projekt ↗</a>
+  </div>
+</aside>
+<div class="app-main">
   <header class="topbar">
-    <div class="brand"><div class="logo">◇</div><div><strong>SensorBridge <span>Emulator</span></strong><small>PROGRAMMABLE WHEATSTONE BRIDGE</small></div></div>
-    <div class="top-actions"><span class="chip" id="modeChip">DEMO · KEINE HARDWARE</span><span id="connectionBadge" class="status">● Offline</span><button id="connectBtn" class="primary">Bluetooth verbinden</button><button id="disconnectBtn" class="secondary hidden">Trennen</button></div>
+    <div class="mobile-menu"><button id="menuBtn" type="button" aria-label="Navigation öffnen">☰</button></div>
+    <div class="page-title"><span class="page-eyebrow">SENSORBRIDGE CONTROL CENTER</span><h1 id="pageTitle">Übersicht</h1></div>
+    <div class="top-actions"><span id="modeChip" class="chip">DEMO · KEINE HARDWARE</span><span id="connectionBadge" class="status">● Offline</span><button id="connectBtn" class="primary">Bluetooth verbinden</button><button id="disconnectBtn" class="secondary hidden">Trennen</button><button id="quickThemeBtn" class="secondary theme-toggle" title="Hell/Dunkel umschalten" aria-label="Design umschalten">◐</button></div>
   </header>
-  <main>
-    <div class="intro"><div><p class="eyebrow">CONTROL CENTER <span>· v0.2.0</span></p><h1>Sensor Simulation</h1><p>Virtuelle Druckmesszelle mit frei definierbaren Kennwerten, TK0/TKE-Grenzen, Hysterese und Prüfpunkten. Web Bluetooth für ESP32-C3.</p></div><div class="intro-actions"><button id="saveBtn" class="secondary">Profil exportieren</button><label class="file-button">Profil importieren<input id="importFile" type="file" accept="application/json,.json" hidden></label><button id="resetBtn" class="secondary">Zurücksetzen</button></div></div>
-    <div id="notice" role="status" aria-live="polite" class="notice">Demo-Modus aktiv: Werte sind berechnet und werden nicht an echte Hardware ausgegeben.</div>
-    <section class="metrics">
+  <main class="content">
+    <div id="notice" role="status" aria-live="polite" class="notice">Demo-Modus: Alle Ausgangssignale sind berechnet. Die analoge Hardware ist noch nicht freigegeben.</div>
+    <section class="view active-view" id="view-dashboard" data-page-title="Übersicht">
+      <div class="view-head"><div><p class="eyebrow">LIVE-ÜBERSICHT</p><h2>SensorBridge Emulator</h2><p class="hint">Dein aktuelles Sensorprofil, Druck, Temperatur und berechnetes Brückensignal auf einen Blick.</p></div><button data-goto="emulator" class="primary">Emulation öffnen</button></div>
+      <section class="metrics">
       <article class="metric"><small>DIFFERENZSIGNAL</small><strong id="outMv">0.00000 <em>mV</em></strong><span id="outMvV">0.0000 mV/V</span></article>
       <article class="metric"><small>VOLLHUB</small><strong id="fullMv">10.000 <em>mV</em></strong><span id="spanText">2.000 mV/V</span></article>
       <article class="metric"><small>BRÜCKENSPEISUNG</small><strong id="excMetric">5.000 <em>V</em></strong><span id="bridgeText">10 kΩ nominal</span></article>
       <article class="metric"><small>DRUCK / TEMPERATUR</small><strong id="conditionMetric">50.0 <em>%</em></strong><span id="physicalPressureMetric">5.000 bar</span> · <span id="temperatureMetric">25.0 °C</span></article>
     </section>
-    <div class="workgrid">
-      <section class="panel chart-panel">
-        <div class="section-head"><div><h2>Kennlinie</h2><small>Berechnetes Brückensignal über Druck</small></div><div class="legend"><span class="swatch blue"></span><span id="curveLabelMin">−40 °C ↑</span> <span class="swatch teal"></span><span id="curveLabelMid">25 °C ↑</span> <span class="swatch amber"></span><span id="curveLabelMax">125 °C ↑</span> · <span class="swatch violet"></span>aktuelle Temp. ↓</div></div>
-        <svg id="curve" viewBox="0 0 760 320" role="img" aria-label="Signalverlauf über Druck" preserveAspectRatio="none"></svg>
-        <div class="chart-bottom"><span>0 %</span><span>25 %</span><span>50 %</span><span>75 %</span><span>100 %</span></div>
-        <div class="line"></div>
-        <div class="section-head"><div><h2>Brückenmodell</h2><small>Idealisierte Einzelwiderstände · kein Hardware-Readback</small></div><span class="tag">WHEATSTONE</span></div>
-        <div class="bridge-layout">
-          <svg class="bridge-svg" viewBox="0 0 320 275" role="img" aria-label="Wheatstone-Brückenschaltung">
-            <g stroke="currentColor" stroke-width="2" fill="none"><path d="M160 25V42H90V62M160 42H230V62M90 117V155M230 117V155M90 210V230H230V210M160 230V250M90 139H30M230 139H290"/></g>
-            <g fill="#152839" stroke="#48cbb4" stroke-width="1.5"><rect x="58" y="62" width="64" height="55" rx="5"/><rect x="198" y="62" width="64" height="55" rx="5"/><rect x="58" y="155" width="64" height="55" rx="5"/><rect x="198" y="155" width="64" height="55" rx="5"/></g>
-            <g fill="currentColor" font-size="12" text-anchor="middle"><text x="160" y="16">EXC+</text><text x="160" y="268">EXC−</text><text x="23" y="132">SIG+</text><text x="297" y="132">SIG−</text><text x="90" y="83">R1</text><text x="230" y="83">R3</text><text x="90" y="176">R2</text><text x="230" y="176">R4</text></g>
-            <g fill="#50dfc1" font-size="11" text-anchor="middle"><text id="r1" x="90" y="102">10000 Ω</text><text id="r3" x="230" y="102">10000 Ω</text><text id="r2" x="90" y="195">10000 Ω</text><text id="r4" x="230" y="195">10000 Ω</text></g>
-          </svg>
-          <div class="bridge-stats"><div><small>Grundbrücke</small><strong>4 × 10 kΩ</strong></div><div><small>Eingangswiderstand</small><strong id="rin">10,000 kΩ</strong></div><div><small>Gleichtakt</small><strong id="vcm">2.500 V</strong></div><div><small>PTC-Zweig</small><strong id="ptcState">Aus</strong></div><p>Die angezeigten Widerstände sind eine mathematische Ersatzbrücke, nicht die tatsächlichen AD5270-Codes.</p></div>
-        </div>
-      </section>
+      <div class="dashboard-grid">
+        <article class="panel"><div class="section-head"><div><h2>Aktuelle Simulation</h2><small>Auf Basis der Sensordefinition</small></div><span class="tag">LIVE DEMO</span></div>
+          <div class="overview-values"><div><small>Sensorprofil</small><strong id="overviewName">Neues Sensorprofil</strong></div><div><small>Druck</small><strong id="overviewPressure">5 bar</strong></div><div><small>Temperatur</small><strong id="overviewTemperature">25 °C</strong></div><div><small>Signal</small><strong id="overviewSignal">5 mV</strong></div></div>
+          <p class="hint">Physikalische Druck- und Temperaturwerte sind nur Sollwerte der mathematischen Simulation.</p>
+        </article>
+        <article class="panel"><div class="section-head"><div><h2>Arbeitsablauf</h2><small>In vier Schritten zur Sensorbrückensimulation</small></div></div>
+          <ol class="workflow-list"><li>Sensor und Messbereiche definieren</li><li>Gewünschte Temperatur und Druck einstellen</li><li>Kennlinie und Eckpunkte prüfen</li><li>Profil speichern oder später ans Gerät übertragen</li></ol>
+          <button data-goto="sensor" class="secondary">Sensor definieren</button>
+        </article>
+      </div>
+    </section>
+    <section class="view" id="view-sensor" data-page-title="Sensor definieren">
+      <div class="view-head"><div><p class="eyebrow">SENSOR DATENBLATT</p><h2>Sensor definieren</h2><p class="hint">Messbereich, elektrische Eigenschaften und Temperaturkoeffizienten sind hier zusammengefasst.</p></div></div>
       <section class="panel controls">
         <div class="section-head"><div><h2>Sensorparameter</h2><small>Werte ändern und sofort simulieren</small></div><span class="tag">SETTINGS</span></div>
         <div class="physical-setpoints">
@@ -106,8 +130,39 @@
         <p class="hint">Die Firmware speichert momentan nur die 12 Basisparameter im RAM. Gain, Hysterese, TK-Krümmung, Kriechen, Grenzwerte und Prüfpunkte sind <strong>nur Simulation</strong>, nicht Teil des aktuellen BLE-Protokolls. Keine reale Analogausgabe.</p>
         <div class="action-row"><button id="sendBtn" class="primary" disabled>An Gerät senden</button><button id="readBtn" class="secondary" disabled>Status lesen</button></div>
       </section>
-    </div>
-    <section class="panel specifications">
+    </section>
+    <section class="view" id="view-emulator" data-page-title="Emulation">
+      <div class="view-head"><div><p class="eyebrow">SETPOINT CONTROL</p><h2>Emulation</h2><p class="hint">Druck als %, bar, mbar, psi oder weitere Einheit vorgeben und Temperatur direkt ändern.</p></div><span class="tag">SIMULATION</span></div>
+      <div class="emulator-grid">
+        <article class="panel"><div class="section-head"><div><h2>Druck und Temperatur einstellen</h2><small>Direkte Eingabe oder Schieberegler</small></div></div>
+          <div class="mode-row"><label for="setpointMode">Druckvorgabe</label><select id="setpointMode"><option value="physical">Physikalischer Druck</option><option value="percent">Prozent [% FS]</option></select><label for="setpointUnit">Einheit</label><select id="setpointUnit"><option value="bar">bar</option><option value="mbar">mbar</option><option value="psi">psi</option><option value="kPa">kPa</option><option value="MPa">MPa</option><option value="Pa">Pa</option></select></div>
+          <div id="emulatorSetpoints"></div>
+          <div class="emulator-readback"><div><small>Normierter Druck</small><strong id="emulatorPercent">50.00 %</strong></div><div><small>Druckwert</small><strong id="emulatorPhysical">5.000 bar</strong></div><div><small>Brückensignal</small><strong id="emulatorSignal">5.000 mV</strong></div></div>
+        </article>
+        <article class="panel"><h2>Gerätekommunikation</h2><p class="hint">Web Bluetooth über ESP32-C3. Die momentan vorhandene Firmware speichert Sollwerte nur im RAM und aktiviert keine Analogausgabe.</p><div id="emulatorHardware"></div>
+          <div class="info-card"><strong>Hardwarestatus</strong><p>Berechnete Werte sind keine bestätigten realen Ausgangsspannungen.</p></div>
+        </article>
+      </div>
+    </section>
+    <section class="view" id="view-characteristics" data-page-title="Kennlinien & Eckpunkte">
+      <div class="view-head"><div><p class="eyebrow">SENSOR CHARACTERISATION</p><h2>Kennlinien & Eckpunkte</h2><p class="hint">Temperaturkennlinien, Hysterese, erwartete Grenzen und frei wählbare Prüfpunkte.</p></div></div>
+      <section class="panel chart-panel">
+        <div class="section-head"><div><h2>Kennlinie</h2><small>Berechnetes Brückensignal über Druck</small></div><div class="legend"><span class="swatch blue"></span><span id="curveLabelMin">−40 °C ↑</span> <span class="swatch teal"></span><span id="curveLabelMid">25 °C ↑</span> <span class="swatch amber"></span><span id="curveLabelMax">125 °C ↑</span> · <span class="swatch violet"></span>aktuelle Temp. ↓</div></div>
+        <svg id="curve" viewBox="0 0 760 320" role="img" aria-label="Signalverlauf über Druck" preserveAspectRatio="none"></svg>
+        <div class="chart-bottom"><span>0 %</span><span>25 %</span><span>50 %</span><span>75 %</span><span>100 %</span></div>
+        <div class="line"></div>
+        <div class="section-head"><div><h2>Brückenmodell</h2><small>Idealisierte Einzelwiderstände · kein Hardware-Readback</small></div><span class="tag">WHEATSTONE</span></div>
+        <div class="bridge-layout">
+          <svg class="bridge-svg" viewBox="0 0 320 275" role="img" aria-label="Wheatstone-Brückenschaltung">
+            <g stroke="currentColor" stroke-width="2" fill="none"><path d="M160 25V42H90V62M160 42H230V62M90 117V155M230 117V155M90 210V230H230V210M160 230V250M90 139H30M230 139H290"/></g>
+            <g fill="#152839" stroke="#48cbb4" stroke-width="1.5"><rect x="58" y="62" width="64" height="55" rx="5"/><rect x="198" y="62" width="64" height="55" rx="5"/><rect x="58" y="155" width="64" height="55" rx="5"/><rect x="198" y="155" width="64" height="55" rx="5"/></g>
+            <g fill="currentColor" font-size="12" text-anchor="middle"><text x="160" y="16">EXC+</text><text x="160" y="268">EXC−</text><text x="23" y="132">SIG+</text><text x="297" y="132">SIG−</text><text x="90" y="83">R1</text><text x="230" y="83">R3</text><text x="90" y="176">R2</text><text x="230" y="176">R4</text></g>
+            <g fill="#50dfc1" font-size="11" text-anchor="middle"><text id="r1" x="90" y="102">10000 Ω</text><text id="r3" x="230" y="102">10000 Ω</text><text id="r2" x="90" y="195">10000 Ω</text><text id="r4" x="230" y="195">10000 Ω</text></g>
+          </svg>
+          <div class="bridge-stats"><div><small>Grundbrücke</small><strong>4 × 10 kΩ</strong></div><div><small>Eingangswiderstand</small><strong id="rin">10,000 kΩ</strong></div><div><small>Gleichtakt</small><strong id="vcm">2.500 V</strong></div><div><small>PTC-Zweig</small><strong id="ptcState">Aus</strong></div><p>Die angezeigten Widerstände sind eine mathematische Ersatzbrücke, nicht die tatsächlichen AD5270-Codes.</p></div>
+        </div>
+      </section>
+      <section class="panel specifications">
       <div class="section-head">
         <div><p class="eyebrow">SENSOR DATA SHEET</p><h2>Erwartete Eckdaten und Toleranzen</h2>
           <small>Grenzen sind optional. Gib min. und/oder max. ein, um die simulierten Kennwerte zu vergleichen.</small></div>
@@ -136,16 +191,29 @@
       </div>
       <p class="hint">Die Eckpunkte prüfen zunächst nur das virtuelle Modell. Reale Sensoren benötigen Messung, ADC-Readback und eine definierte Abgleichfolge. Das Modell verwendet eine quadratische Hysteresekurve mit maximaler Auf-/Ab-Differenz bei 50 %.</p>
     </section>
-    <footer>
-      <span>SensorBridge Emulator · Development prototype</span>
-      <nav aria-label="Projektlinks">
-        <a href="https://github.com/Vadergit/SensorBridge-Emulator" target="_blank" rel="noopener noreferrer">GitHub</a>
-        <a href="https://github.com/Vadergit/SensorBridge-Emulator/blob/main/docs/CONCEPT.md" target="_blank" rel="noopener noreferrer">Konzept</a>
-        <a href="https://github.com/Vadergit/SensorBridge-Emulator/blob/main/hardware/BOM.csv" target="_blank" rel="noopener noreferrer">BOM / LCSC</a>
-        <a href="https://github.com/Vadergit/SensorBridge-Emulator/blob/main/docs/PROTOCOL.md" target="_blank" rel="noopener noreferrer">BLE-Protokoll</a>
-      </nav>
-      <span>No verified analogue output</span>
-    </footer>
+    </section>
+    <section class="view" id="view-profiles" data-page-title="Profile">
+      <div class="view-head"><div><p class="eyebrow">DATEIEN UND PROFILVERWALTUNG</p><h2>Profile laden und speichern</h2><p class="hint">JSON-Export für die spätere Kalibriersoftware, JSON-Import und lokale Profile im Browser.</p></div></div>
+      <article class="panel"><h2>Aktuelles Sensorprofil</h2><div id="profileConfig"></div><div id="profileActions"><div class="intro-actions"><button id="saveBtn" class="secondary">Profil exportieren</button><label class="file-button">Profil importieren<input id="importFile" type="file" accept="application/json,.json" hidden></label><button id="resetBtn" class="secondary">Zurücksetzen</button></div></div><p class="hint">Die Profilfunktionen ändern ausschliesslich die Browser-Simulation, nicht die angeschlossene Hardware.</p></article>
+      <article class="panel"><div class="section-head"><div><h2>Gespeicherte Profile</h2><small>Nur in diesem Browser lokal gespeichert</small></div><button id="storeProfileBtn" class="primary">Profil lokal speichern</button></div><div id="storedProfiles" class="stored-profiles"></div></article>
+    </section>
+    <section class="view" id="view-firmware" data-page-title="Firmwareupdate">
+      <div class="view-head"><div><p class="eyebrow">USB FIRMWARE INSTALLER</p><h2>ESP32-C3 SuperMini aktualisieren</h2><p class="hint">Firmwareupdate wie im ELMOS-Konfigurator: direkt im Browser über USB-C mit ESP Web Tools.</p></div></div>
+      <article class="panel fw-panel">
+        <div class="section-head"><div><h2>SensorBridge-C3 Firmware</h2><small>ESP32-C3 SuperMini · USB-C · Chrome oder Edge</small></div><span class="tag" id="firmwareVersion">Firmware wird geprüft</span></div>
+        <div class="fw-steps"><div><span>1</span>ESP32-C3 SuperMini per USB anschliessen</div><div><span>2</span>Andere serielle Verbindungen trennen</div><div><span>3</span>USB-Port auswählen und Firmware installieren</div></div>
+        <div class="info-card warning"><strong>Achtung</strong><p>Nur die SensorBridge-Firmware für ESP32-C3 verwenden. Der Installer kann vorhandene Firmware und gespeicherte Einstellungen überschreiben. Die analoge Hardware ist noch nicht validiert.</p></div>
+        <esp-web-install-button id="firmwareInstaller" hidden><button type="button" slot="activate" disabled>Firmware über USB installieren</button><span slot="unsupported">Bitte Chrome oder Edge auf einem Computer verwenden.</span><span slot="not-allowed">HTTPS oder localhost ist erforderlich.</span></esp-web-install-button>
+        <p id="firmwareStatus" class="hint" role="status">Firmwareverfügbarkeit wird geprüft …</p>
+        <div class="action-row"><button type="button" id="checkFirmwareBtn" class="secondary">Erneut prüfen</button><a target="_blank" rel="noopener noreferrer" href="https://github.com/Vadergit/SensorBridge-Emulator/tree/main/firmware">Firmware-Quellcode ↗</a></div>
+      </article>
+    </section>
+    <section class="view" id="view-settings" data-page-title="Einstellungen">
+      <div class="view-head"><div><p class="eyebrow">DARSTELLUNG UND VERBINDUNG</p><h2>Einstellungen</h2><p class="hint">Farbschema, lokale Daten und Informationen zur Verbindung.</p></div></div>
+      <article class="panel"><h2>Design</h2><div class="mode-row"><label for="themeSelect">Farbschema</label><select id="themeSelect"><option value="light">Hell</option><option value="dark">Dunkel</option><option value="system">Systemeinstellung</option></select></div><p class="hint">Farben und Kartenlayout orientieren sich am ELMOS-Kalibrierassistenten.</p></article>
+      <article class="panel"><h2>Verbindung und Daten</h2><p class="hint">Für Web Bluetooth und Web Serial wird Chrome oder Edge benötigt. Beim USB-Firmwareupdate wird eine separate Browser-Verbindung geöffnet; trenne vorher andere serielle Anwendungen.</p><button id="clearLocalProfilesBtn" class="secondary">Lokale Profile löschen</button><p class="hint">Diese Aktion löscht nur die auf diesem Gerät gespeicherten Sensorprofile.</p></article>
+      <article class="panel"><h2>Dokumentation</h2><p><a href="https://github.com/Vadergit/SensorBridge-Emulator/blob/main/docs/SENSOR_PROFILES.md" target="_blank" rel="noopener noreferrer">Sensorprofile und Berechnungen ↗</a></p><p><a href="https://github.com/Vadergit/SensorBridge-Emulator/blob/main/docs/PROTOCOL.md" target="_blank" rel="noopener noreferrer">BLE-Protokoll ↗</a></p></article>
+    </section>
+    <footer><span>SensorBridge Emulator · Entwicklungsversion</span><span>Analoger Ausgang noch nicht validiert</span><a href="https://github.com/Vadergit/SensorBridge-Emulator" target="_blank" rel="noopener noreferrer">GitHub ↗</a></footer>
   </main>
-</body>
-</html>
+</div></div></body></html>
