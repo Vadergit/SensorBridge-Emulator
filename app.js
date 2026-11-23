@@ -12,9 +12,10 @@ const DECIMAL = window.SensorBridgeNumbers;
 const defaults = Object.freeze({ excitation:5, span:2, offset:0, pressure:50, temperature:25, tk0:0, tke:0, nonlinearity:0, drift:0, ptcEnabled:false, ptcR25:10000, ptcPpm:4000, tempResistorMode:'off', ntcR25:10000, ntcBeta:3950, ...CHAR.extraDefaults });
 let state = { ...defaults };
 let expectedLimits = {};
-let testPoints = CHAR.defaultTestPoints().map((p,i)=>({...p,pressureValue:PRESSURE.physical(p.pressure,0,10),id:i+1}));
+let testPoints = CHAR.defaultTestPoints().map((p,i)=>({...p,pressureValue:PRESSURE.physical(p.pressure,0,100),id:i+1}));
 let nextPointId = testPoints.length+1;
 let profileName = 'Neues Sensorprofil';
+let lastPhysicalSelection={unit:'bar',min:0,max:10}; // Example only; %FS has no physical unit
 let device = null, writeCharacteristic = null, statusCharacteristic = null;
 const $ = id => document.getElementById(id);
 const num = (x,f=3) => Number(x).toFixed(f);
@@ -114,6 +115,7 @@ function syncForm(){
  $('ntcParameters').hidden=state.tempResistorMode!=='ntc';
  for(const key of ['pressureMin','pressureMax','temperatureMin','temperatureMax'])update($(key),state[key]);
  $('pressureUnit').value=state.pressureUnit;$('pressureReference').value=state.pressureReference;
+ $('pressureReference').disabled=state.pressureUnit==='percent';
  $('pressureMinUnit').textContent=state.pressureUnit;$('pressureMaxUnit').textContent=state.pressureUnit;$('pressureActualUnit').textContent=state.pressureUnit;
  update($('pressureActualNumber'),Number(state.pressureValue.toPrecision(12)));
  const range=$('pressureActual');range.min=state.pressureMin;range.max=state.pressureMax;
@@ -121,7 +123,9 @@ function syncForm(){
  range.value=state.pressureValue;
  $('temperature').min=state.temperatureMin;$('temperature').max=state.temperatureMax;
  $('temperatureNumber').min=state.temperatureMin;$('temperatureNumber').max=state.temperatureMax;
- $('pressureConversion').textContent=Number(state.pressureValue).toLocaleString('de-CH',{maximumFractionDigits:5})+' '+state.pressureUnit+' = '+num(state.pressure,2)+' % FS · '+num(state.temperature,2)+' °C';
+ $('pressureConversion').textContent=state.pressureUnit==='percent'
+ ?num(state.pressure,2)+' % FS · '+num(state.temperature,2)+' °C'
+ :Number(state.pressureValue).toLocaleString('de-CH',{maximumFractionDigits:5})+' '+state.pressureUnit+' = '+num(state.pressure,2)+' % FS · '+num(state.temperature,2)+' °C';
  render();
 }
 function updateValue(key,val){
@@ -157,25 +161,44 @@ function setPhysicalRange(){
  state.pressureValue=clamp(state.pressureValue,pMin,pMax);
  state.pressure=PRESSURE.percent(state.pressureValue,pMin,pMax);
  state.temperature=clamp(state.temperature,tMin,tMax);
+ if(state.pressureUnit!=='percent')lastPhysicalSelection={unit:state.pressureUnit,min:pMin,max:pMax};
  renderPointRows();syncForm();
 }
 function switchPressureUnit(unit){
  const previous=state.pressureUnit;
  if(unit===previous)return;
+ if(!PRESSURE.units[unit]){uiNotice('Unbekannte Druckeinheit.','error');syncForm();return;}
  try{
-  const converter=value=>PRESSURE.convert(value,previous,unit);
-  const pMin=converter(state.pressureMin),pMax=converter(state.pressureMax);
-  if(!PRESSURE.validRange(pMin,pMax,unit))throw Error('Ungültiger Messbereich nach Umrechnung');
-  state.pressureMin=pMin;state.pressureMax=pMax;state.pressureValue=converter(state.pressureValue);
-  state.pressureUnit=unit;
-  for(const point of testPoints)point.pressureValue=converter(point.pressureValue);
+  const oldMin=state.pressureMin,oldMax=state.pressureMax;
+  let nextMin,nextMax,message;
+  if(unit==='percent'){
+   if(previous!=='percent')lastPhysicalSelection={unit:previous,min:oldMin,max:oldMax};
+   nextMin=0;nextMax=100;
+   message='Druckdarstellung auf 0–100 % FS gesetzt. Der bisherige physikalische Messbereich bleibt vorgemerkt.';
+  }else if(previous==='percent'){
+   const remembered=lastPhysicalSelection;
+   nextMin=PRESSURE.convert(remembered.min,remembered.unit,unit);
+   nextMax=PRESSURE.convert(remembered.max,remembered.unit,unit);
+   message='Physikalischer Beispielbereich übernommen. Bitte unter Sensor definieren deine tatsächlichen Sensorgrenzen prüfen.';
+  }else{
+   nextMin=PRESSURE.convert(oldMin,previous,unit);
+   nextMax=PRESSURE.convert(oldMax,previous,unit);
+   message='Druckeinheit in '+unit+' umgerechnet. Der physikalische Druck und die Simulation bleiben gleich.';
+  }
+  if(!PRESSURE.validRange(nextMin,nextMax,unit))throw Error('Ungültiger Messbereich nach Einheitenwechsel.');
+  const mapValue=v=>PRESSURE.physical(PRESSURE.percent(v,oldMin,oldMax),nextMin,nextMax);
+  for(const point of testPoints)point.pressureValue=mapValue(point.pressureValue);
   for(const key of ['pressureValue','pressureMin','pressureMax']){
    const limit=expectedLimits[key];
-   if(limit)for(const side of ['min','max'])if(limit[side]!=null)limit[side]=converter(limit[side]);
+   if(limit)for(const side of ['min','max'])if(limit[side]!=null)limit[side]=mapValue(limit[side]);
   }
+  state.pressureMin=nextMin;state.pressureMax=nextMax;
+  state.pressureValue=PRESSURE.physical(state.pressure,nextMin,nextMax);
+  state.pressureUnit=unit;
+  if(unit!=='percent')lastPhysicalSelection={unit,min:nextMin,max:nextMax};
   renderExpectedRows();renderPointRows();syncForm();
-  uiNotice('Druckeinheit in '+unit+' umgerechnet. Der tatsächliche Druck und das Signal bleiben gleich.');
- }catch(err){uiNotice('Umrechnung fehlgeschlagen: '+err.message,'error');syncForm();}
+  uiNotice(message);
+ }catch(err){uiNotice('Einheitenwechsel fehlgeschlagen: '+err.message,'error');syncForm();}
 }
 // Sliders update live. Decimal text fields commit on blur/Enter, avoiding
 // cursor jumps and incomplete numbers while the user is typing.
@@ -209,7 +232,7 @@ $('pressureUnit').addEventListener('change',event=>switchPressureUnit(event.targ
 $('pressureReference').addEventListener('change',event=>{state.pressureReference=event.target.value;syncForm();});
 $('direction').addEventListener('change',event=>{state.direction=event.target.value;render();});
 document.querySelectorAll('[data-pressure]').forEach(b=>b.addEventListener('click',()=>updateValue('pressure',Number(b.dataset.pressure))));
-$('resetBtn').addEventListener('click',()=>{state={...defaults};expectedLimits={};testPoints=CHAR.defaultTestPoints().map((p,i)=>({...p,pressureValue:PRESSURE.physical(p.pressure,0,10),id:i+1}));nextPointId=testPoints.length+1;profileName='Neues Sensorprofil';$('profileName').value=profileName;renderExpectedRows();renderPointRows();syncForm();uiNotice('Standardprofil wiederhergestellt. Keine Hardwareänderung.')});
+$('resetBtn').addEventListener('click',()=>{state={...defaults};expectedLimits={};testPoints=CHAR.defaultTestPoints().map((p,i)=>({...p,pressureValue:PRESSURE.physical(p.pressure,0,100),id:i+1}));nextPointId=testPoints.length+1;profileName='Neues Sensorprofil';$('profileName').value=profileName;renderExpectedRows();renderPointRows();syncForm();uiNotice('Standardprofil wiederhergestellt. Keine Hardwareänderung.')});
 function snapshotProfile(){
  return {schema:'sensorbridge-profile/v4',name:profileName,parameters:{...state},
   expectedLimits:JSON.parse(JSON.stringify(expectedLimits)),
@@ -222,6 +245,7 @@ function loadProfile(incoming){
    ?CHAR.defaultTestPoints().map(p=>({...p,pressureValue:PRESSURE.physical(p.pressure,params.pressureMin,params.pressureMax)}))
    :parseTestPoints(incoming.testPoints,params);
  state=params;expectedLimits=limits;testPoints=points.map((p,i)=>({...p,id:i+1}));
+ if(params.pressureUnit!=='percent')lastPhysicalSelection={unit:params.pressureUnit,min:params.pressureMin,max:params.pressureMax};
  nextPointId=testPoints.length+1;
  profileName=typeof incoming.name==='string'?incoming.name.slice(0,100):'Importiertes Sensorprofil';
  $('profileName').value=profileName;
