@@ -1,0 +1,48 @@
+name: Build ESP32-C3 Firmware
+on:
+  push:
+    branches: [main]
+    paths:
+      - "firmware/esp32_c3/**"
+      - ".github/workflows/build-esp32c3.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install build tools
+        run: pip install "platformio==6.1.18" "esptool==4.8.1"
+      - name: Compile BLE demo firmware
+        run: pio run -d firmware/esp32_c3 -e esp32-c3-supermini
+      - name: Merge bootloader and application
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD=firmware/esp32_c3/.pio/build/esp32-c3-supermini
+          DEST=firmware/releases/esp32-c3/v0.1.0
+          mkdir -p "$DEST"
+          test -s "$BUILD/bootloader.bin"
+          test -s "$BUILD/partitions.bin"
+          test -s "$BUILD/firmware.bin"
+          PARTS=(0x0 "$BUILD/bootloader.bin" 0x8000 "$BUILD/partitions.bin")
+          if [ -s "$BUILD/boot_app0.bin" ]; then PARTS+=(0xe000 "$BUILD/boot_app0.bin"); fi
+          PARTS+=(0x10000 "$BUILD/firmware.bin")
+          python -m esptool --chip esp32c3 merge_bin -o "$DEST/sensorbridge-esp32c3.bin" --flash_mode dio --flash_freq 80m --flash_size 4MB "${PARTS[@]}"
+          test -s "$DEST/sensorbridge-esp32c3.bin"
+          printf '%s\n' '{"name":"SensorBridge Emulator · ESP32-C3 SuperMini","version":"0.1.0-lab-BLE-only","new_install_prompt_erase":true,"builds":[{"chipFamily":"ESP32-C3","parts":[{"path":"sensorbridge-esp32c3.bin","offset":0}]}]}' > "$DEST/manifest.json"
+      - name: Publish installable firmware
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add firmware/releases/esp32-c3/v0.1.0
+          if ! git diff --cached --quiet; then
+            git commit -m "build: publish ESP32-C3 USB installer image [skip ci]"
+            git push origin HEAD:main
+          fi
