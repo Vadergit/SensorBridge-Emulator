@@ -1,0 +1,27 @@
+Category,Designator,Qty,Component,Value / package,LCSC-ID (unverified),Purpose,Status,Unit price USD estimate
+Controller,MOD1,1,ESP32-C3 SuperMini,USB 5V / 3.3V BLE,,"Controller module; purchase separately if not in LCSC",module model unverified,4.00
+Bridge,R1-R4,4,Precision resistor,10k 0.01% 2ppm/K 0805,C1858460,Matched Wheatstone bridge,part ID requires supplier confirmation,
+Coarse,RG1-RG4,4,Precision resistor,12k 0.1% 0603,C2089230,Coarse shunt series resistors,provisional values,
+Medium,RM1-RM2,2,Precision resistor,150k 0.1% 0805,C4278090,Medium shunt series resistors,provisional values,
+Fine,RF1-RF2,2,Resistor,4.53M 1% 0805,C4091049,Fine shunt series resistors; leakage critical,provisional values,
+PTC,RT1,1,Precision resistor,5.90k 0.1% 0603,C3934671,Series resistor for PTC emulator,PTC curve not verified,
+Bridge control,U1-U8,8,Analog Devices AD5270BRMZ-100,10bit 100k MSOP-10,C207959,8 controlled shunt rheostats,verify availability pinout and footprint,6.00
+PTC control,U9,1,Analog Devices AD5270BRMZ-20,10bit 20k MSOP-10,C208540,Optional current/PTC branch,verify availability pinout and footprint,6.80
+Isolation,U_ISO,1,SPI isolator,ADuM3151 candidate,,Controller-side to isolated SPI chain,exact variant and LCSC ID OPEN,
+Power,U_DCDC,1,Isolated 5V-to-9V DC/DC,IF0509S-1WR3,C22749970,Isolated auxiliary supply,verify output rails and package,
+Power,U_LDO,1,Low-noise adjustable regulator,TPS7A4901DGNR,C16430,Isolated analogue supply,feedback network unverified,
+Power,RFB1,1,Resistor,33.6k 0.1% 0805,C1726080,Feedback high resistor,requires regulator calculation,
+Power,RFB2,1,Resistor,10k 0.1% 0603,C723396,Feedback low resistor,requires regulator calculation,
+PTC switch,K1,1,Omron DPDT signal relay,G6K-2F-Y DC5,C1560486,Fully disconnect optional PTC,contact/leakage verify,
+PTC switch,Q1,1,NPN S8050,SOT-23,C181158,Relay driver,verify transistor pin mapping,
+PTC switch,D1,1,1N4148W,SOD-123,C2099,Coil flyback diode,verify rating,
+Passives,C_EXT1-C_EXT9,9,Capacitor,1uF 16V X7R 0603,C16194029,AD5270 EXT_CAP,verify capacitor data sheet,
+Passives,CDEC1-CDEC9,9,Capacitor,100nF X7R 0603,C20539422,AD5270 bypass,verify PCB placement,
+Passives,CBULK1-CBULK4,4,Capacitor,10uF X7R 0805,C95841,Regulator bulk,verify stability,
+Passives,RPU1-RPU9,9,Resistor,2.2k 0603,C114662,Digital pullups proposed,check for SPI need,
+Passives,RBASE,1,Resistor,1k 0603,C22548,Relay drive base,verify,
+Passives,RPD,1,Resistor,100k 0603,C14675,Relay drive base pulldown,verify,
+Connector,J1,1,4pin 2.54mm header,4 x EXC+ SIG+ SIG- EXC-,C5368801,SSC hookup,connector variant to verify,
+Measurement,J_KELVIN1-4,4,4pin 2.54mm test headers,force/sense x4,,Four-terminal resistance measurements,mechanical design OPEN,
+Measurement,TP*,1 set,PCB test pads,force/sense power communication,,Test points,exact quantities and package OPEN,
+Isolation,JP*,1 set,2pin 2.54mm jumper headers,power/stage/ring breaks,,Staged bring-up and resistance tests,exact network isolation OPEN,
