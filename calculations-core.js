@@ -128,8 +128,80 @@ function softwareMetrics(s){
   outputNoiseUv:null,
   reachablePressurePositions:null};
 }
+/**
+ * A clearly hypothetical %FS grid demonstration.
+ *
+ * There is NO combined 8-channel network map yet. Treating the nearest isolated
+ * fine-channel 512 -> 513 increment as a globally repeated uniform step is an
+ * illustrative rounding exercise, NOT a reachable output claim.
+ * Single channel step range and percentage conversion are separately reported.
+ */
+function hubPrecision(s){
+ const targetPercent=s.pressure;
+ const signalAt=p=>calculate({...s,pressure:p}).total;
+ const targetMv=signalAt(targetPercent);
+ const baselineMv=signalAt(0);
+ const fullMv=signalAt(100)-baselineMv;
+ const pLo=Math.max(0,targetPercent-0.01),pHi=Math.min(100,targetPercent+0.01);
+ const localSlopeUvPerPercent=pHi>pLo?
+   (signalAt(pHi)-signalAt(pLo))*1000/(pHi-pLo):NaN;
+ const stages=stageMetrics(s).map(stage=>{
+   const oneCodeMv=Math.abs(
+      shuntOutputMv(s.excitation,s.bridgeResistance,stage.series,stage.rpot,513)-
+      shuntOutputMv(s.excitation,s.bridgeResistance,stage.series,stage.rpot,512));
+   const oneStepUv=oneCodeMv*1000;
+   const slopeAbs=Math.abs(localSlopeUvPerPercent);
+   return {...stage,oneStepUv,
+     localStepPercent:slopeAbs>1e-12?oneStepUv/slopeAbs:null,
+     localMinPercent:slopeAbs>1e-12?stage.minStepUv/slopeAbs:null,
+     localMaxPercent:slopeAbs>1e-12?stage.maxStepUv/slopeAbs:null,
+     isolatedCoveragePercent:slopeAbs>1e-12?stage.sweepSpanUv/slopeAbs:null};
+ });
+ const fine=stages.find(stage=>stage.id==='fine');
+ const valid=Number.isFinite(targetMv)&&Number.isFinite(localSlopeUvPerPercent)&&
+   localSlopeUvPerPercent>1e-12&&fullMv>0&&
+   Number.isFinite(fine.oneStepUv)&&fine.oneStepUv>0;
+ let gridPercent=null,gridDeviationPercent=null,gridOutputMv=null;
+ if(valid){
+   // Constant-voltage fictitious grid, anchored to zero-pressure model output.
+   // It assumes a perfectly accurate coarse/middle positioning stage and one
+   // endlessly repeated local fine step, which real hardware does not provide.
+   const gridMv=fine.oneStepUv/1000;
+   const discreteCode=Math.round((targetMv-baselineMv)/gridMv);
+   gridOutputMv=baselineMv+discreteCode*gridMv;
+   const lowOutput=signalAt(0),highOutput=signalAt(100);
+   gridOutputMv=Math.min(highOutput,Math.max(lowOutput,gridOutputMv));
+   // Search only if whole pressure curve is monotonic. This can fail for
+   // intentionally extreme nonlinearity / hysteresis simulation settings.
+   let monotonic=true,previous=lowOutput;
+   for(let p=1;p<=100;p+=1){
+     const next=signalAt(p);
+     if(next<=previous){monotonic=false;break;}
+     previous=next;
+   }
+   if(monotonic){
+     let low=0,high=100;
+     for(let i=0;i<45;i++){
+       const mid=(low+high)/2;
+       if(signalAt(mid)<gridOutputMv)low=mid;else high=mid;
+     }
+     gridPercent=(low+high)/2;
+     gridDeviationPercent=gridPercent-targetPercent;
+   }
+ }
+ return {
+   targetPercent,targetMv,localSlopeUvPerPercent,
+   nominalFullScaleMv:fullMv,stages,fine,
+   idealLocalPercentStep:valid?fine.localStepPercent:null,
+   idealRoundingLimitPercent:valid?fine.localStepPercent/2:null,
+   gridPercent,gridDeviationPercent,gridOutputMv,
+   actualReachedPercent:null,actualAccuracyPercent:null,
+   hardwareVerified:false,
+   caveat:'Nur eine idealisierte Rundung mit einem gleichmässig wiederholten Feinschritt, keine real verifizierte Hubauflösung. Die Grob-/Mittelpositionierung, kombinierte Netlist, Leckströme, Rauschen und Rückmessung fehlen.'
+ };
+}
 root.SensorBridgeEquations=Object.freeze({
- calculate,shuntOutputMv,stageMetrics,thermistorMetrics,softwareMetrics,fmt,STAGES,
+ calculate,hubPrecision,shuntOutputMv,stageMetrics,thermistorMetrics,softwareMetrics,fmt,STAGES,
  positionsPerAD5270:N
 });
 })(window);
