@@ -113,6 +113,7 @@
        :'Dieser Sollwiderstand liegt ausserhalb der angenommenen 5.9–25.9-kΩ-Widerstandsspanne und wäre mit diesem Konzept NICHT darstellbar.')+
        ' Im definierten Temperaturbereich '+fmt(s.temperatureMin,2)+' bis '+fmt(s.temperatureMax,2)+' °C liegen ideal '+
        fmt(m.representableCount,0)+' der 1’024 Codes. '+
+       (m.coveredMin!=null?'Die nutzbare Modellspanne reicht dabei nur von '+fmt(m.coveredMin,3)+' bis '+fmt(m.coveredMax,3)+' °C. ':'')+
        (m.minTempStep!=null?'Benachbarte darstellbare Temperaturen unterscheiden sich um '+fmt(m.minTempStep,5)+' bis '+fmt(m.maxTempStep,5)+' K. ':'')+
        'Dies ist nur eine hypothetische Abbildung. Weder NTC noch PTC ist derzeit in der echten Firmware umgesetzt.';
    }
@@ -148,7 +149,7 @@
    const software=core.softwareMetrics(s),wrapper=$('resolutionSummaries');wrapper.replaceChildren();
    wrapper.append(
      metric('Druck-Slider',fmt(software.sliderPressure,3)+' % FS','Theoretisch '+fmt(software.pressurePositions,0)+' UI-Stellungen (0–100 %)'),
-     metric('Temperatur-Slider',fmt(software.sliderTemp,3)+' °C','Theoretisch '+fmt(software.temperaturePositions,0)+' UI-Stellungen im eingestellten Bereich'),
+     metric('Temperatur-Slider',fmt(software.sliderTemp,3)+' °C','Theoretisch '+fmt(software.temperaturePositions,0)+' UI-Stellungen · ΔSignal '+fmt(software.temperatureEffectUv,6)+' µV je Schritt am aktuellen Druck'),
      metric('Druck-Schritt im Signal',fmt(software.pressureEffectUv,6)+' µV','Nur idealer linearer Hub, ohne die Nichtlinearität und Hysterese'),
      metric('AD5270 pro Kanal','1’024 Codes','10 Bit · hardwareseitige Auflösung erst nach Validierung')
    );
