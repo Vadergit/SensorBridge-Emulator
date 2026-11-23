@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#101927">
   <title>SensorBridge Emulator · Control Console</title>
   <link rel="stylesheet" href="./style.css">
+  <script defer src="./characteristics.js"></script>
   <script defer src="./app.js"></script>
 </head>
 <body>
@@ -14,7 +15,7 @@
     <div class="top-actions"><span class="chip" id="modeChip">DEMO · KEINE HARDWARE</span><span id="connectionBadge" class="status">● Offline</span><button id="connectBtn" class="primary">Bluetooth verbinden</button><button id="disconnectBtn" class="secondary hidden">Trennen</button></div>
   </header>
   <main>
-    <div class="intro"><div><p class="eyebrow">CONTROL CENTER <span>· v0.1.0</span></p><h1>Sensor Simulation</h1><p>Virtuelle Druckmesszelle mit Nullpunkt, Spanne und Temperaturverhalten. Web Bluetooth für ESP32-C3.</p></div><div class="intro-actions"><button id="saveBtn" class="secondary">Profil exportieren</button><label class="file-button">Profil importieren<input id="importFile" type="file" accept="application/json,.json" hidden></label><button id="resetBtn" class="secondary">Zurücksetzen</button></div></div>
+    <div class="intro"><div><p class="eyebrow">CONTROL CENTER <span>· v0.2.0</span></p><h1>Sensor Simulation</h1><p>Virtuelle Druckmesszelle mit frei definierbaren Kennwerten, TK0/TKE-Grenzen, Hysterese und Prüfpunkten. Web Bluetooth für ESP32-C3.</p></div><div class="intro-actions"><button id="saveBtn" class="secondary">Profil exportieren</button><label class="file-button">Profil importieren<input id="importFile" type="file" accept="application/json,.json" hidden></label><button id="resetBtn" class="secondary">Zurücksetzen</button></div></div>
     <div id="notice" role="status" aria-live="polite" class="notice">Demo-Modus aktiv: Werte sind berechnet und werden nicht an echte Hardware ausgegeben.</div>
     <section class="metrics">
       <article class="metric"><small>DIFFERENZSIGNAL</small><strong id="outMv">0.00000 <em>mV</em></strong><span id="outMvV">0.0000 mV/V</span></article>
@@ -24,7 +25,7 @@
     </section>
     <div class="workgrid">
       <section class="panel chart-panel">
-        <div class="section-head"><div><h2>Kennlinie</h2><small>Berechnetes Brückensignal über Druck</small></div><div class="legend"><span class="swatch blue"></span>0 °C <span class="swatch teal"></span>25 °C <span class="swatch amber"></span>75 °C</div></div>
+        <div class="section-head"><div><h2>Kennlinie</h2><small>Berechnetes Brückensignal über Druck</small></div><div class="legend"><span class="swatch blue"></span>0 °C ↑ <span class="swatch teal"></span>25 °C ↑ <span class="swatch amber"></span>75 °C ↑ · <span class="swatch violet"></span>aktuelle Temp. ↓</div></div>
         <svg id="curve" viewBox="0 0 760 320" role="img" aria-label="Signalverlauf über Druck" preserveAspectRatio="none"></svg>
         <div class="chart-bottom"><span>0 %</span><span>25 %</span><span>50 %</span><span>75 %</span><span>100 %</span></div>
         <div class="line"></div>
@@ -58,16 +59,60 @@
           <label>Drift <small>µV</small><input id="drift" type="number" step="0.1"></label>
           </div>
         </details>
+<div class="line"></div>
+        <details open class="parameter-section"><summary>Brücke, Gain und Hysterese</summary>
+          <p class="hint">Brücken-Gain ist ein dimensionsloser Multiplikator für die eingestellte Spanne. Auf- und Abwärtskennlinien unterscheiden sich um die Hysterese in % des Vollhubs (Maximum bei 50 %).</p>
+          <div class="advanced">
+            <label>Brücken-Gain <small>× Spanne</small><input id="bridgeGain" type="number" min="0.01" max="10" step="0.01"></label>
+            <label>Brückenwiderstand <small>Ω · nominell je Arm</small><input id="bridgeResistance" type="number" min="100" max="1000000" step="100"></label>
+            <label>Hysterese <small>% FS (Auf/Ab bei 50 %)</small><input id="hysteresis" type="number" min="0" max="20" step="0.01"></label>
+            <label>Belastungsrichtung <small>gewählte Kennlinie</small><select id="direction"><option value="up">Aufwärts (↑)</option><option value="down">Abwärts (↓)</option></select></label>
+            <label>TK0-Krümmung <small>µV/V/K²</small><input id="tk0Quadratic" type="number" min="-100" max="100" step="0.01"></label>
+            <label>TKE-Krümmung <small>ppm/K²</small><input id="tkeQuadratic" type="number" min="-10000" max="10000" step="0.1"></label>
+            <label>Kriechen <small>% FS · asymptotisch</small><input id="creepPercentFS" type="number" min="-20" max="20" step="0.01"></label>
+            <label>Zeitkonstante <small>Sekunden</small><input id="creepTauS" type="number" min="0.1" max="3600" step="1"></label>
+            <label>Verstrichene Zeit <small>Sekunden</small><input id="elapsedSeconds" type="number" min="0" max="3600" step="1"></label>
+          </div>
+        </details>
         <div class="line"></div>
         <div class="section-head"><div><h2>Temperaturzweig</h2><small>Optionaler PTC-Parallelzweig</small></div><label class="switch"><input type="checkbox" id="ptcEnabled"><span></span></label></div>
         <div class="advanced"><label>PTC bei 25 °C <small>Ω</small><input id="ptcR25" type="number" step="100" min="100"></label><label>PTC-Koeffizient <small>ppm/K</small><input id="ptcPpm" type="number" step="50"></label></div>
         <p class="hint" id="ptcHint">PTC-Zweig getrennt. Die Brücke allein bestimmt den Strom.</p>
         <div class="line"></div>
         <div class="section-head"><div><h2>Hardware</h2><small>Befehl nur bei BLE-Verbindung</small></div><span id="hardwareTag" class="tag">DEMO</span></div>
-        <p class="hint">Die Firmware bestätigt Einstellungen. Ohne validierte Hardware und Ausgangsfreigabe bleibt die analoge Brücke unverändert.</p>
+        <p class="hint">Die Firmware speichert momentan nur die 12 Basisparameter im RAM. Gain, Hysterese, TK-Krümmung, Kriechen, Grenzwerte und Prüfpunkte sind <strong>nur Simulation</strong>, nicht Teil des aktuellen BLE-Protokolls. Keine reale Analogausgabe.</p>
         <div class="action-row"><button id="sendBtn" class="primary" disabled>An Gerät senden</button><button id="readBtn" class="secondary" disabled>Status lesen</button></div>
       </section>
     </div>
+    <section class="panel specifications">
+      <div class="section-head">
+        <div><p class="eyebrow">SENSOR DATA SHEET</p><h2>Erwartete Eckdaten und Toleranzen</h2>
+          <small>Grenzen sind optional. Gib min. und/oder max. ein, um die simulierten Kennwerte zu vergleichen.</small></div>
+        <div class="spec-summary"><span id="specResult">Noch keine Grenzen definiert</span></div>
+      </div>
+      <div class="spec-top">
+        <label class="profile-label">Profilbezeichnung <input id="profileName" type="text" maxlength="100" placeholder="z. B. Drucksensor Typ A, 0–10 bar" value="Neues Sensorprofil"></label>
+        <span class="hint">Eingegebene Grenzen sind Erwartungen – keine geprüften Messwerte.</span>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Erwartete Sensorkennwerte und Bereiche">
+          <thead><tr><th>Kennwert</th><th>Simuliert (Ist)</th><th>Min. erwartet</th><th>Max. erwartet</th><th>Bewertung</th></tr></thead>
+          <tbody id="expectedBody"></tbody>
+        </table>
+      </div>
+      <div class="line"></div>
+      <div class="section-head">
+        <div><h2>Frei definierbare Prüfpunkte</h2><small>Druck × Temperatur × Auf/Ab – optional mit Grenzwerten des erwarteten Brückenausgangs in mV.</small></div>
+        <div class="action-row compact-actions"><button id="addPointBtn" class="secondary">+ Prüfpunkt</button><button id="resetPointsBtn" class="secondary">Standardpunkte</button></div>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Konfigurierbare Temperatur- und Druckprüfpunkte">
+          <thead><tr><th>Druck (%)</th><th>Temp. (°C)</th><th>Richtung</th><th>Signal berechnet (mV)</th><th>Min. erwartet (mV)</th><th>Max. erwartet (mV)</th><th>Status</th><th></th></tr></thead>
+          <tbody id="testPointsBody"></tbody>
+        </table>
+      </div>
+      <p class="hint">Die Eckpunkte prüfen zunächst nur das virtuelle Modell. Reale Sensoren benötigen Messung, ADC-Readback und eine definierte Abgleichfolge. Das Modell verwendet eine quadratische Hysteresekurve mit maximaler Auf-/Ab-Differenz bei 50 %.</p>
+    </section>
     <footer>
       <span>SensorBridge Emulator · Development prototype</span>
       <nav aria-label="Projektlinks">
