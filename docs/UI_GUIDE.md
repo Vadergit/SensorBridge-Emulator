@@ -77,3 +77,13 @@ Alle Felder verwenden einheitliche Höhen, Abstände und Schriftgrössen, mit zw
 - NTC: Widerstand R25 und Beta-Wert in K.
 
 Die Auswertung ist ein mathematisches Modell. NTC/AD5270 sind in der realen Firmware noch nicht umgesetzt. Die aktuelle BLE-Demofirmware unterstützt weiterhin nur 12 Basiseinstellungen.
+
+## v0.8 – Formeln und Auflösung
+
+Unter **Berechnungen & Auflösung** werden die mathematischen Formeln links und die aktuelle Einsetzung rechts dargestellt. Die Werte sind live mit Sensorparametern, Druck und Temperatur gekoppelt. Daneben werden die idealisierten AD5270-Schrittweiten sowie die prinzipiell darstellbaren PTC-/NTC-Widerstandsbereiche berechnet.
+
+Die maximale reale Ausgangstoleranz ist noch unbekannt, auch wenn die Software ein theoretisches Quantisierungsniveau zeigt.
+
+Unter **Wiki & Hilfe** sind die Parameter über kleine, dezente **?**-Schaltflächen erklärt. Alle Links auf externe Seiten öffnen in einem neuen Tab. Der Anfangsdruck ist jetzt **0 bis 100 % FS**; bar, mbar oder psi sind optional.
+
+Siehe [ausführliche Berechnungen](CALCULATIONS_AND_RESOLUTION.md) und [Fachbegriffe](WIKI.md).
