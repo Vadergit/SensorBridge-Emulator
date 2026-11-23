@@ -674,3 +674,180 @@ footer { margin-top: 15px; padding-block: 12px; }
   .wiki-articles { grid-template-columns: 1fr; }
   .help-dialog { padding: 15px; }
 }
+
+
+/* v0.8 — ELMOS-style side-by-side mathematical derivations and hardware limits */
+.help-trigger {
+  width: 15px;
+  height: 15px;
+  min-width: 15px;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 50%;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  opacity: .85;
+  box-shadow: none;
+}
+.help-trigger:hover,.help-trigger:focus-visible {
+  opacity: 1;
+  background: var(--blue-soft);
+  color: var(--blue);
+  border-color: var(--blue);
+}
+.physical-range-grid .uniform-control,
+.advanced > label,
+#parameterFields .field-head > label,
+#emulatorSetpoints .field-head > label,
+.mode-row > label,
+.physical-current .field-head > label,
+.profile-label {
+  padding-right: 18px;
+}
+#parameterFields .field-head > label,
+#emulatorSetpoints .field-head > label {
+  padding-right: 18px;
+}
+.panel h2 > .help-trigger,.section-head h2 > .help-trigger {
+  margin-left: 5px;
+}
+#view-calculations .calculation-panel {
+  max-width: 1200px;
+  margin-inline: auto;
+  padding: 18px 20px;
+}
+#view-calculations .calculation-panel > h3 {
+  font-size: 14px;
+  margin: 16px 0 6px;
+}
+#view-calculations .calculation-panel > .section-head {
+  margin-bottom: 15px;
+}
+.calc-table-head,
+.calc-row {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  gap: 0;
+}
+.calc-table-head {
+  border: 1px solid var(--line);
+  background: var(--blue-soft);
+  border-radius: 8px 8px 0 0;
+  padding: 9px 14px;
+  font-size: 11px;
+  color: var(--blue);
+  font-weight: 800;
+}
+.calc-table-head > span:nth-child(2) { padding-left: 18px; }
+.calc-rows { border: 1px solid var(--line); border-top: 0; border-radius: 0 0 8px 8px; overflow: hidden; }
+.calc-row { min-height: 80px; border-bottom: 1px solid var(--line); background: var(--paper); }
+.calc-row:nth-child(even) { background: var(--subtle); }
+.calc-row:last-child { border-bottom: 0; }
+.calc-row > div { min-width: 0; padding: 10px 14px; }
+.calc-row > div:nth-child(2) { border-left: 1px solid var(--line); }
+.calc-formula strong { display: block; font-size: 11px; font-weight: 700; color: var(--muted); }
+.calc-math { display: flex; min-height: 36px; align-items: center; overflow-x: auto; }
+.math-block {
+  max-width: 100%;
+  font-family: "Cambria Math","STIX Two Math","Latin Modern Math",serif;
+  font-size: 17px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.calc-numeric small { display: block; margin-bottom: 6px; font-size: 10px; }
+.calc-current {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+  line-height: 1.55;
+}
+.calc-row[data-calc="total"] { background: var(--blue-soft); }
+.calc-row[data-calc="total"] .calc-formula strong,
+.calc-row[data-calc="total"] .calc-current { color: var(--blue); }
+.calc-result {
+  margin-top: 11px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.calc-result > div {
+  border: 1px solid var(--line);
+  background: var(--subtle);
+  border-radius: 8px;
+  padding: 11px 14px;
+}
+.calc-result small,.resolution-metric small {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+.calc-result strong { display: block; font-size: 18px; }
+.resolution-metrics {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 10px;
+  margin: 6px 0 14px;
+}
+.resolution-metric {
+  border: 1px solid var(--line);
+  background: var(--subtle);
+  border-radius: 8px;
+  padding: 11px 12px;
+  min-width: 0;
+}
+.resolution-metric strong {
+  display: block;
+  font-size: 18px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.resolution-metric > span {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.resolution-table td,
+.resolution-table th { font-size: 11px; }
+.resolution-example {
+  background: var(--subtle);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--blue);
+  border-radius: 7px;
+  padding: 12px 13px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.thermistor-resolution .hint { margin: 7px 0 4px; line-height: 1.65; }
+.tolerance-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 14px;
+  align-items: center;
+  margin: 12px 0;
+}
+.tolerance-controls label { font-size: 12px; font-weight: 700; }
+.tolerance-controls input { height: 35px; width: 95px; }
+.tolerance-controls small { font-size: 11px; }
+#toleranceGoalResult { line-height: 1.65; }
+@media(max-width:1090px) {
+  .resolution-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:730px) {
+  #view-calculations .calculation-panel { padding: 14px; }
+  .calc-table-head { display: none; }
+  .calc-row { grid-template-columns: 1fr; }
+  .calc-row > div:nth-child(2) { border-left: 0; border-top: 1px dashed var(--line); }
+  .math-block { font-size: 16px; }
+  .calc-current { font-size: 12px; }
+}
+@media(max-width:490px) {
+  .resolution-metrics { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .resolution-metric { padding: 9px; }
+  .resolution-metric strong { font-size: 15px; }
+  .calc-result { grid-template-columns: 1fr; }
+}
