@@ -851,3 +851,97 @@ footer { margin-top: 15px; padding-block: 12px; }
   .resolution-metric strong { font-size: 15px; }
   .calc-result { grid-template-columns: 1fr; }
 }
+
+
+/* Live hub accuracy in percent of full scale, directly next to the simulator. */
+.hub-precision {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 13px 14px 11px;
+  background: var(--paper);
+}
+.hub-precision .section-head {
+  margin-bottom: 10px;
+}
+.hub-precision h3 {
+  margin: 0;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.hub-precision h3 > .help-trigger {
+  position: relative;
+  inset: auto;
+  flex: 0 0 15px;
+}
+.hub-precision .section-head small { font-size: 10px; }
+.hub-precision-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 7px;
+}
+.hub-precision-grid > div {
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--subtle);
+}
+.hub-precision-grid small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+.hub-precision-grid strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 17px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.hub-precision-grid > div:last-child strong { color: var(--blue); }
+.hub-precision-breakdown {
+  margin-top: 11px;
+  overflow-x: auto;
+}
+.hub-precision-breakdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.hub-precision-breakdown th,.hub-precision-breakdown td {
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  padding: 6px 7px;
+  white-space: nowrap;
+}
+.hub-precision-breakdown th {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+.hub-precision-breakdown tbody tr:last-child td { border-bottom: none; }
+.hub-precision-status {
+  padding: 8px 10px;
+  border-radius: 7px;
+  border-left: 3px solid var(--yellow);
+  background: var(--subtle);
+  font-size: 11px;
+  margin: 10px 0 6px;
+}
+.hub-precision .hint {
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 0;
+}
+@media(max-width:500px) {
+  .hub-precision { padding: 10px; }
+  .hub-precision-grid { gap: 6px; }
+  .hub-precision-grid > div { padding: 7px; }
+  .hub-precision-grid strong { font-size: 15px; }
+}
