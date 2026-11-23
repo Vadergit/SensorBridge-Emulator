@@ -137,4 +137,4 @@ async function send(){
 }
 
 $('connectBtn').addEventListener('click',connectBLE);$('disconnectBtn').addEventListener('click',()=>device?.gatt?.disconnect());$('readBtn').addEventListener('click',readStatus);$('sendBtn').addEventListener('click',send);
-syncForm();setMode(false);
+initProfileUI();syncForm();setMode(false);
