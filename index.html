@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#101927">
   <title>SensorBridge Emulator · Control Console</title>
   <link rel="stylesheet" href="./style.css">
+  <script defer src="./pressure-units.js"></script>
   <script defer src="./characteristics.js"></script>
   <script defer src="./profiles-ui.js"></script>
   <script defer src="./app.js"></script>
@@ -22,11 +23,11 @@
       <article class="metric"><small>DIFFERENZSIGNAL</small><strong id="outMv">0.00000 <em>mV</em></strong><span id="outMvV">0.0000 mV/V</span></article>
       <article class="metric"><small>VOLLHUB</small><strong id="fullMv">10.000 <em>mV</em></strong><span id="spanText">2.000 mV/V</span></article>
       <article class="metric"><small>BRÜCKENSPEISUNG</small><strong id="excMetric">5.000 <em>V</em></strong><span id="bridgeText">10 kΩ nominal</span></article>
-      <article class="metric"><small>DRUCK / TEMPERATUR</small><strong id="conditionMetric">50.0 <em>%</em></strong><span id="temperatureMetric">25.0 °C</span></article>
+      <article class="metric"><small>DRUCK / TEMPERATUR</small><strong id="conditionMetric">50.0 <em>%</em></strong><span id="physicalPressureMetric">5.000 bar</span> · <span id="temperatureMetric">25.0 °C</span></article>
     </section>
     <div class="workgrid">
       <section class="panel chart-panel">
-        <div class="section-head"><div><h2>Kennlinie</h2><small>Berechnetes Brückensignal über Druck</small></div><div class="legend"><span class="swatch blue"></span>0 °C ↑ <span class="swatch teal"></span>25 °C ↑ <span class="swatch amber"></span>75 °C ↑ · <span class="swatch violet"></span>aktuelle Temp. ↓</div></div>
+        <div class="section-head"><div><h2>Kennlinie</h2><small>Berechnetes Brückensignal über Druck</small></div><div class="legend"><span class="swatch blue"></span><span id="curveLabelMin">−40 °C ↑</span> <span class="swatch teal"></span><span id="curveLabelMid">25 °C ↑</span> <span class="swatch amber"></span><span id="curveLabelMax">125 °C ↑</span> · <span class="swatch violet"></span>aktuelle Temp. ↓</div></div>
         <svg id="curve" viewBox="0 0 760 320" role="img" aria-label="Signalverlauf über Druck" preserveAspectRatio="none"></svg>
         <div class="chart-bottom"><span>0 %</span><span>25 %</span><span>50 %</span><span>75 %</span><span>100 %</span></div>
         <div class="line"></div>
@@ -43,12 +44,33 @@
       </section>
       <section class="panel controls">
         <div class="section-head"><div><h2>Sensorparameter</h2><small>Werte ändern und sofort simulieren</small></div><span class="tag">SETTINGS</span></div>
+        <div class="physical-setpoints">
+          <div class="section-head"><div><h2>Physikalischer Messbereich</h2><small>Druck in echten Einheiten; der Hub in % wird automatisch berechnet</small></div><span class="tag">PRESSURE / TEMPERATURE</span></div>
+          <div class="physical-range-grid">
+            <label>Druck von <small id="pressureMinUnit">bar</small><input id="pressureMin" type="number" step="any" value="0"></label>
+            <label>Druck bis <small id="pressureMaxUnit">bar</small><input id="pressureMax" type="number" step="any" value="10"></label>
+            <label>Druckeinheit
+              <select id="pressureUnit"><option value="bar">bar</option><option value="mbar">mbar</option><option value="kPa">kPa</option><option value="MPa">MPa</option><option value="psi">psi</option><option value="Pa">Pa</option></select>
+            </label>
+            <label>Bezug
+              <select id="pressureReference"><option value="gauge">Relativdruck</option><option value="absolute">Absolutdruck</option></select>
+            </label>
+            <label>Temperatur von <small>°C</small><input id="temperatureMin" type="number" min="-40" max="125" step="any" value="-40"></label>
+            <label>Temperatur bis <small>°C</small><input id="temperatureMax" type="number" min="-40" max="125" step="any" value="125"></label>
+          </div>
+          <div class="physical-current">
+            <div class="field-head"><label for="pressureActual">Aktuell anliegender Druck</label><div><input id="pressureActualNumber" type="number" step="any" value="5"><span id="pressureActualUnit">bar</span></div></div>
+            <input id="pressureActual" type="range" min="0" max="10" value="5" step="0.01">
+            <p class="hint" id="pressureConversion">5 bar = 50 % des Messbereichs · 25 °C</p>
+          </div>
+        </div>
+        <div class="line"></div>
         <div id="parameterFields">
           <div class="field" data-field="excitation"><div class="field-head"><label for="excitation">Brückenspeisung</label><div><input id="excitationNumber" type="number" min="0.1" max="5.5" step="0.1"><span>V</span></div></div><input id="excitation" type="range" min="0.1" max="5.5" step="0.1"></div>
           <div class="field" data-field="span"><div class="field-head"><label for="span">Signalspanne</label><div><input id="spanNumber" type="number" min="1" max="4" step="0.01"><span>mV/V</span></div></div><input id="span" type="range" min="1" max="4" step="0.01"></div>
           <div class="field" data-field="offset"><div class="field-head"><label for="offset">Nullpunktversatz</label><div><input id="offsetNumber" type="number" min="-1000" max="1000" step="0.1"><span>mV</span></div></div><input id="offset" type="range" min="-1000" max="1000" step="0.1"></div>
-          <div class="field" data-field="pressure"><div class="field-head"><label for="pressure">Druck / Hub</label><div><input id="pressureNumber" type="number" min="0" max="100" step="0.1"><span>%</span></div></div><input id="pressure" type="range" min="0" max="100" step="0.1"></div>
-          <div class="field" data-field="temperature"><div class="field-head"><label for="temperature">Simulierte Temperatur</label><div><input id="temperatureNumber" type="number" min="-40" max="125" step="0.1"><span>°C</span></div></div><input id="temperature" type="range" min="-40" max="125" step="0.1"></div>
+          <div class="field" data-field="pressure"><div class="field-head"><label for="pressure">Druck / Hub (% FS)</label><div><input id="pressureNumber" type="number" min="0" max="100" step="0.1"><span>%</span></div></div><input id="pressure" type="range" min="0" max="100" step="0.1"></div>
+          <div class="field" data-field="temperature"><div class="field-head"><label for="temperature">Aktuelle Temperatur</label><div><input id="temperatureNumber" type="number" min="-40" max="125" step="0.1"><span>°C</span></div></div><input id="temperature" type="range" min="-40" max="125" step="0.1"></div>
         </div>
         <div class="quick"><button data-pressure="0">0 %</button><button data-pressure="25">25 %</button><button data-pressure="50">50 %</button><button data-pressure="75">75 %</button><button data-pressure="100">100 %</button></div>
         <div class="line"></div>
@@ -103,12 +125,12 @@
       </div>
       <div class="line"></div>
       <div class="section-head">
-        <div><h2>Frei definierbare Prüfpunkte</h2><small>Druck × Temperatur × Auf/Ab – optional mit Grenzwerten des erwarteten Brückenausgangs in mV.</small></div>
+        <div><h2>Frei definierbare Prüfpunkte</h2><small>Physikalischer Druck × Temperatur × Auf/Ab – optional mit Grenzwerten des erwarteten Brückenausgangs in mV.</small></div>
         <div class="action-row compact-actions"><button id="addPointBtn" class="secondary">+ Prüfpunkt</button><button id="resetPointsBtn" class="secondary">Standardpunkte</button></div>
       </div>
       <div class="table-scroll">
         <table class="data-table" aria-label="Konfigurierbare Temperatur- und Druckprüfpunkte">
-          <thead><tr><th>Druck (%)</th><th>Temp. (°C)</th><th>Richtung</th><th>Signal berechnet (mV)</th><th>Min. erwartet (mV)</th><th>Max. erwartet (mV)</th><th>Status</th><th></th></tr></thead>
+          <thead><tr><th id="testPressureHeading">Druck (bar)</th><th>Hub (%)</th><th>Temp. (°C)</th><th>Richtung</th><th>Signal berechnet (mV)</th><th>Min. erwartet (mV)</th><th>Max. erwartet (mV)</th><th>Status</th><th></th></tr></thead>
           <tbody id="testPointsBody"></tbody>
         </table>
       </div>
