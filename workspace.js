@@ -68,19 +68,32 @@
   const physical=$('pressureActual').closest('.physical-current');
   const percent=$('pressure').closest('.field');
   function modeUpdate(){
-    const usePercent=$('setpointMode').value==='percent';
+    const usePercent=$('setpointMode').value==='percent'||$('pressureUnit').value==='percent';
+    if($('pressureUnit').value==='percent')$('setpointMode').value='percent';
     physical.hidden=usePercent;
     percent.hidden=!usePercent;
     $('setpointUnit').disabled=usePercent;
     $('setpointUnit').value=$('pressureUnit').value;
   }
-  $('setpointMode').addEventListener('change',modeUpdate);
+  $('setpointMode').addEventListener('change',event=>{
+    if(event.target.value==='physical'&&$('pressureUnit').value==='percent'){
+      // The user's physical sensor range has not been defined yet.
+      $('pressureUnit').value='bar';
+      $('pressureUnit').dispatchEvent(new Event('change',{bubbles:true}));
+    }
+    modeUpdate();
+  });
   $('setpointUnit').addEventListener('change',event=>{
     $('pressureUnit').value=event.target.value;
     $('pressureUnit').dispatchEvent(new Event('change',{bubbles:true}));
+    $('setpointMode').value=event.target.value==='percent'?'percent':'physical';
     modeUpdate();
   });
-  $('pressureUnit').addEventListener('change',()=>{$('setpointUnit').value=$('pressureUnit').value;});
+  $('pressureUnit').addEventListener('change',()=>{
+    $('setpointUnit').value=$('pressureUnit').value;
+    if($('pressureUnit').value==='percent')$('setpointMode').value='percent';
+    modeUpdate();
+  });
   modeUpdate();
 
   function updateOverview(){
