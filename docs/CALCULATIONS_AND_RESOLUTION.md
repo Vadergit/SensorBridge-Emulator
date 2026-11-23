@@ -67,6 +67,33 @@ Die **Schritte sind nicht konstant**: Die exakte Ausgangsspannung ist eine nicht
 
 **Wichtige Konsequenz:** Selbst wenn ein *einziger* idealer Feinabgleich-Zweig in dieser Rechnung Schritte von rund 0.06 µV hätte, sind die reale Gesamtausgangsspanne und die Feinauflösung von der späteren Kombination der Grob-, Mittel- und Feinkanäle, dem Kalibrationsalgorithmus sowie vom Rauschen und den Leckströmen abhängig. `1024^8` mögliche Codes sind **keine** Garantie für dieselbe Anzahl unabhängiger, stabiler und gleichmässig verteilter Ausgangssignale.
 
+## Live-Hubauflösung in % FS
+
+Unter **Emulation** direkt neben dem Druck-Setpoint werden jetzt vier Werte angezeigt:
+
+- **Gewünschter Hub:** der eingestellte Sollwert in Prozent des vollen Sensorhubs.
+- **Rastermodell: nächster Hub:** theoretisch gerundeter Wert aus einem *fiktiv über 0–100 % wiederholten* Feinschritt.
+- **Abweichung:** Differenz zwischen dem idealisierten Rasterwert und dem gewünschten Hub in **Prozentpunkten**.
+- **Lokaler Fein-Schritt:** idealisierte %FS-Änderung eines einzelnen Fein-AD5270 bei Code 512→513, umgerechnet mit der **aktuellen** Kennliniensteigung bei Druck, Temperatur, Gain und Fehlerparametern.
+
+Die Grob-/Mittel-/Feinschritte werden darunter auch in **% FS pro Code** dargestellt, einschliesslich des theoretisch beeinflussten Hubbereichs je Einzelkanal.
+
+**Wichtig:** Dieser «nächste Hub» ist **keine echte Hardwareausgabe**. Das Rastermodell setzt voraus, dass Grob/Mittel beliebig exakt zum Feinraster positionieren können und der lokale Feinschritt beliebig oft wiederholt werden kann. Das ist physikalisch nicht nachgewiesen und für einen einzelnen AD5270 nicht möglich. Der tatsächliche Ist-Hub, die Gesamtzahl erreichbarer 0–100-%-Stellwerte und die reale maximale Toleranz sind derzeit **unbekannt**. Erst nach Schaltungsvalidierung und analoger Rückmessung darf die Anzeige einen real gemessenen Istwert zeigen.
+
+Beispiel für 5 V, 2 mV/V Nennspanne, 10-kΩ-Brückenarme, Gain 1, 25 °C und fehlerfreie Idealkennlinie:
+
+| Grösse | Rechnerisches Beispiel |
+|---|---:|
+| Gesamthub | 10 mV = 100 % FS |
+| Lokaler Feinschritt (ein AD5270, Code 512→513) | ca. 0.058066 µV |
+| Schritt in % FS | ca. 0.00058066 % FS |
+| Halber lokaler Schritt | ca. ±0.00029033 Prozentpunkte |
+| Sollhub 50.000000 % FS | fiktiv gerundet ca. 50.000077 % FS |
+| Abweichung im Rundungsmodell | ca. +0.000077 Prozentpunkte |
+| Tatsächlicher Ist-Hub | **nicht verfügbar** |
+
+Die Berechnung berücksichtigt, dass sich die lokale Signalsteigung durch die Temperatureinstellung und Kennlinienparameter ändern kann.
+
 ## 4. Temperaturwiderstand und Temperaturschritte
 
 Bisheriges PTC-/NTC-Konzept: `5'900 Ω` in Reihe mit einem idealisierten `AD5270-20k`:
