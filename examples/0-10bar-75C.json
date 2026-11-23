@@ -1,0 +1,130 @@
+{
+  "schema": "sensorbridge-profile/v3",
+  "name": "Beispiel Drucksensor 0–10 bar · 75 °C",
+  "parameters": {
+    "excitation": 5,
+    "span": 2,
+    "offset": 0,
+    "pressure": 65,
+    "temperature": 75,
+    "tk0": 0.8,
+    "tke": 800,
+    "nonlinearity": 0,
+    "drift": 0,
+    "ptcEnabled": false,
+    "ptcR25": 10000,
+    "ptcPpm": 4000,
+    "bridgeGain": 1,
+    "bridgeResistance": 10000,
+    "direction": "up",
+    "hysteresis": 0.06,
+    "tk0Quadratic": 0,
+    "tkeQuadratic": 0,
+    "creepPercentFS": 0,
+    "creepTauS": 60,
+    "elapsedSeconds": 0,
+    "pressureMin": 0,
+    "pressureMax": 10,
+    "pressureValue": 6.5,
+    "pressureUnit": "bar",
+    "pressureReference": "gauge",
+    "temperatureMin": -20,
+    "temperatureMax": 85
+  },
+  "expectedLimits": {
+    "baseSpan": {
+      "min": 1.8,
+      "max": 2.2
+    },
+    "bridgeGain": {
+      "min": 0.95,
+      "max": 1.05
+    },
+    "tk0": {
+      "min": 0.5,
+      "max": 1
+    },
+    "tke": {
+      "min": 600,
+      "max": 1000
+    },
+    "hysteresis": {
+      "min": 0,
+      "max": 0.1
+    },
+    "pressureMin": {
+      "min": 0,
+      "max": 0
+    },
+    "pressureMax": {
+      "min": 10,
+      "max": 10
+    },
+    "temperatureMin": {
+      "min": -20,
+      "max": -20
+    },
+    "temperatureMax": {
+      "min": 85,
+      "max": 85
+    }
+  },
+  "testPoints": [
+    {
+      "pressureValue": 0,
+      "pressure": 0,
+      "temperature": 25,
+      "direction": "up",
+      "min": -0.1,
+      "max": 0.1
+    },
+    {
+      "pressureValue": 5,
+      "pressure": 50,
+      "temperature": 25,
+      "direction": "up",
+      "min": 4.9,
+      "max": 5.1
+    },
+    {
+      "pressureValue": 10,
+      "pressure": 100,
+      "temperature": 25,
+      "direction": "up",
+      "min": 9.9,
+      "max": 10.1
+    },
+    {
+      "pressureValue": 0,
+      "pressure": 0,
+      "temperature": 75,
+      "direction": "up",
+      "min": 0.1,
+      "max": 0.3
+    },
+    {
+      "pressureValue": 5,
+      "pressure": 50,
+      "temperature": 75,
+      "direction": "up",
+      "min": 5.2,
+      "max": 5.6
+    },
+    {
+      "pressureValue": 5,
+      "pressure": 50,
+      "temperature": 75,
+      "direction": "down",
+      "min": 5.2,
+      "max": 5.6
+    },
+    {
+      "pressureValue": 10,
+      "pressure": 100,
+      "temperature": 75,
+      "direction": "up",
+      "min": 10.4,
+      "max": 10.8
+    }
+  ]
+}
