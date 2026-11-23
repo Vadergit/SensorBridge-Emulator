@@ -128,6 +128,7 @@ function renderPointResults(){
  for(const tr of body.rows){
   const point=testPoints.find(p=>p.id===Number(tr.dataset.id));if(!point)continue;
   const pct=PRESSURE.percent(point.pressureValue,state.pressureMin,state.pressureMax);
+  point.pressure=pct; // keep legacy %FS field consistent with the physical value in profile exports
   tr.querySelector('.pointPercent').textContent=Number(pct).toLocaleString('de-CH',{maximumFractionDigits:2})+' %';
   const outside=pct<0||pct>100||point.temperature<state.temperatureMin||point.temperature>state.temperatureMax;
   const invalidRange=point.min!=null&&point.max!=null&&point.min>point.max;
