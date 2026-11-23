@@ -10,6 +10,16 @@ A development project for simulating an untrimmed resistive pressure-sensor brid
 
 After enabling GitHub Pages (Settings → Pages → Deploy from branch → main / root), the application can run on the URL above via HTTPS. You can try all parameters immediately with **Demo mode**, without hardware.
 
+## Sensor data sheet and real operating points
+
+The web UI includes a **physical pressure setpoint** and a configurable pressure range. Enter for example `0–10 bar`, `6.5 bar`, and `75 °C`; the simulation maps this to `65 % FS` and calculates the bridge signal including enabled TK0/TKE, hysteresis and gain. Supported pressure units: **bar, mbar, kPa, MPa, psi and Pa**. It also supports a configurable operating temperature range (−40 to 125 °C).
+
+Other configurable characterisation values include bridge gain, bridge-arm resistance, hysteresis (up/down), TK0/TKE and second-order temperature terms, nonlinearity, drift, and time-dependent creep. Expected min/max ranges for individual parameters and test-point limits can be entered separately. Physical pressure/temperature corners are editable in a table and exported with the profile.
+
+See [sensor profiles and examples](docs/SENSOR_PROFILES.md) and [example profile](examples/0-10bar-75C.json).
+
+> All of these are currently **mathematical simulations**. The BLE test firmware accepts only 12 legacy base fields; it does not apply physical pressure, gain, hysteresis or other advanced characteristics to analogue outputs. The relative/absolute pressure selector is a definition of the pressure reference, not an automatic atmospheric offset converter.
+
 ## Intended features
 
 - Passive 10 kΩ-arm Wheatstone bridge, powered from the attached SSC (EXC+/EXC−), with 2.54 mm sensor connector
@@ -26,8 +36,8 @@ After enabling GitHub Pages (Settings → Pages → Deploy from branch → main 
 | Feature | Status |
 |---|---|
 | Browser UI and mathematical bridge model | Implemented; demonstration only |
-| Presets and JSON export/import | Implemented in browser |
-| BLE connection UI, protocol client | Implemented; requires compatible firmware |
+| Presets and JSON export/import | Implemented in browser (profile schema v3) |
+| BLE connection UI, protocol client | Implemented for 12 base fields; advanced profile remains browser-only |
 | ESP32-C3 BLE GATT demonstration firmware | Reference prototype, unverified on hardware |
 | AD5270 control, SPI isolation, feedback ADC | **Not implemented / not validated** |
 | Sensor bridge circuit and temperature-current emulation | **Draft electrical architecture** |
