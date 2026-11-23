@@ -367,3 +367,149 @@ select:focus {
     align-items: center;
   }
 }
+
+/*
+ * v0.6 — Kompakter Standardmodus.
+ * Ziel: ca. 20–30 % weniger vertikaler Platz bei unveränderter Lesbarkeit.
+ * Responsive: auf schmalen Geräten bleiben Eingaben einspaltig.
+ */
+:root {
+  --control-height: 35px;
+  --control-radius: 7px;
+  --form-gap: 10px;
+}
+.content { padding-block: 15px; }
+.topbar { min-height: 62px; height: 66px; padding-block: 8px; }
+.page-title h1 { font-size: 19px; }
+.page-eyebrow { font-size: 9px; margin-bottom: 2px; }
+.view-head { margin-bottom: 11px; gap: 10px; }
+.view-head h2 { font-size: 21px; margin-bottom: 2px; }
+.view-head .eyebrow { margin-bottom: 3px; }
+.notice { padding: 8px 11px; margin-bottom: 12px; }
+.panel { padding: 15px 17px; margin-bottom: 11px; }
+#view-sensor .controls { padding: 16px 19px; }
+#view-sensor .controls > .section-head:first-child { padding-bottom: 9px; }
+#view-sensor .controls > .section-head:first-child h2 { font-size: 18px; }
+.section-head h2 { font-size: 16px; }
+.section-head small { font-size: 11px; }
+.line { margin: 13px 0; }
+.tag, .chip, .status { padding: 4px 8px; font-size: 10px; }
+button { padding: 7px 11px; border-radius: 7px; }
+.sidebar { padding: 14px 10px; }
+.side-brand { padding-bottom: 15px; }
+.side-group-label { padding: 13px 10px 6px; }
+.nav-button { padding: 8px 10px; gap: 9px; }
+.nav-button > span { font-size: 17px; }
+.metrics { gap: 10px; margin-bottom: 13px; }
+.metric { padding: 12px 14px; }
+.metric strong { font-size: 23px; margin-top: 4px; }
+.overview-values { margin: 14px 0; gap: 12px; }
+.workflow-list { margin: 10px 0 13px; }
+.physical-setpoints {
+  margin: 11px 0 12px;
+  padding: 13px 15px;
+}
+.physical-setpoints .section-head h2 { font-size: 16px; }
+.physical-range-grid {
+  margin-top: 11px;
+  gap: 10px 12px;
+}
+.physical-range-grid .uniform-control {
+  grid-template-rows: 16px 13px var(--control-height);
+  gap: 2px;
+}
+.physical-range-grid .uniform-control > span { font-size: 12px; line-height: 16px; }
+.physical-range-grid .uniform-control > small { font-size: 10px; line-height: 13px; min-height: 13px; }
+.physical-range-grid .uniform-control > input,
+.physical-range-grid .uniform-control > select {
+  padding: 6px 10px;
+}
+#parameterFields {
+  gap: 10px;
+  margin: 11px 0;
+}
+#parameterFields > .field {
+  padding: 10px 12px 8px;
+  border-radius: 8px;
+}
+#parameterFields > .field .field-head {
+  min-height: 36px;
+  margin-bottom: 5px;
+  column-gap: 8px;
+  grid-template-columns: minmax(0,1fr) minmax(115px,150px);
+}
+#parameterFields > .field .field-head label { font-size: 12px; }
+#parameterFields > .field .field-head > div { gap: 5px; }
+#parameterFields > .field input[type="range"] { height: 15px; }
+#view-sensor .controls > details {
+  margin: 9px 0;
+  padding: 9px 12px 11px;
+  border-radius: 8px;
+}
+#view-sensor .controls > details summary {
+  font-size: 12px;
+  line-height: 18px;
+}
+.advanced {
+  column-gap: 12px;
+  row-gap: 11px;
+  margin-top: 9px;
+}
+.advanced > label {
+  grid-template-rows: 16px 13px var(--control-height);
+  gap: 2px;
+  font-size: 12px;
+}
+.advanced > label > small {
+  min-height: 13px;
+  line-height: 13px;
+  font-size: 10px;
+}
+.advanced > label > input,
+.advanced > label > select {
+  padding: 6px 10px;
+}
+.thermistor-mode-label { gap: 7px; }
+.thermistor-mode-label > select { width: 145px; min-width: 130px; }
+#view-sensor .thermistor-parameters {
+  margin: 11px 0 9px;
+  padding: 11px 12px;
+}
+#view-sensor #ptcHint { margin-top: 8px; line-height: 1.4; }
+#emulatorSetpoints > .physical-current { padding: 10px 12px; margin-top: 10px; }
+#emulatorSetpoints > .field { padding: 10px 12px; margin: 9px 0; }
+#emulatorSetpoints .field-head { gap: 9px; }
+#emulatorSetpoints .quick { margin-top: 9px; }
+.emulator-readback { padding: 10px; margin-top: 12px; }
+.emulator-readback strong { font-size: 17px; }
+#view-characteristics .chart-panel { padding: 15px 18px; }
+#curve { margin-top: 8px; max-height: 270px; }
+.bridge-stats { gap: 10px; }
+.spec-top, .table-scroll { margin-block: 10px; }
+.data-table th, .data-table td { padding: 7px 9px; }
+.data-table input[type="text"], .data-table select { min-height: 32px; padding: 5px 8px; }
+.profile-row { padding: 8px 10px; }
+.fw-steps { gap: 10px; margin: 14px 0; }
+footer { margin-top: 15px; padding-block: 12px; }
+/* Three columns save a full row on large desktops without crowding labels. */
+@media (min-width: 1510px) {
+  #parameterFields { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  #parameterFields > .field[data-field="offset"] { grid-column: auto; }
+  .advanced { grid-template-columns: repeat(3,minmax(0,1fr)); }
+}
+@media (max-width: 780px) {
+  .topbar { min-height: 58px; height: auto; }
+  .panel { padding: 13px; }
+  #view-sensor .controls { padding: 13px; }
+  .view-head h2 { font-size: 20px; }
+}
+@media (max-width: 680px) {
+  .physical-range-grid,
+  #parameterFields,
+  .advanced { grid-template-columns: minmax(0,1fr); }
+  #parameterFields > .field[data-field="offset"] { grid-column: auto; }
+}
+@media (max-width: 420px) {
+  #parameterFields > .field .field-head,
+  #emulatorSetpoints .field-head { grid-template-columns: minmax(0,1fr); }
+}
