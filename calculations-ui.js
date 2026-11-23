@@ -97,45 +97,39 @@
    const m=core.thermistorMetrics(s),box=$('thermistorResolution');box.replaceChildren();
    const row=document.createElement('div');row.className='resolution-metrics';
    row.append(
-    metric('AD5270-20k Codes','1’024','0 bis 1’023, 1’023 Codeübergänge'),
-    metric('R-Schritt ideal',fmt(20000/1024,5)+' Ω','Konstanter idealer Rheostat-Codeabstand'),
-    metric('Netzwerk-R min.',fmt(5900,2)+' Ω','5’900 Ω + Code 0'),
-    metric('Netzwerk-R max.',fmt(5900+20000*1023/1024,2)+' Ω','5’900 Ω + Code 1’023')
+     metric('Eingestellte Temperatur',fmt(s.temperature,4)+' °C','Aktueller Sollwert'),
+     metric('Theoretischer lokaler Temp.-Schritt',m.active&&m.targetPossible&&m.localTempStep!=null?
+       '≈ '+fmt(m.localTempStep,6)+' °C':'Noch offen','Widerstandsmodell, keine echte Hardware'),
+     metric('Darstellbare Temperaturen',m.active?fmt(m.representableCount,0):'—','Anzahl idealer Werte innerhalb des gewählten Bereichs'),
+     metric('Darstellbarer Temp.-Bereich',m.active&&m.coveredMin!=null?
+       fmt(m.coveredMin,2)+' bis '+fmt(m.coveredMax,2)+' °C':'Nicht verfügbar','Nur provisorisches PTC-/NTC-Modell')
    );box.append(row);
    const paragraph=document.createElement('p');paragraph.className='hint';
    if(!m.active){
-     paragraph.textContent='Temperaturwiderstand deaktiviert. Für theoretische Temperaturschritte wähle unter «Sensor definieren» PTC oder NTC. Ohne einen Widerstandskennwert kann keine temperaturbezogene Auflösung berechnet werden.';
+     paragraph.textContent='Kein Temperaturwiderstand aktiv. Die Temperatur kann in der Software in 0.001 °C-Schritten eingestellt werden, aber eine reale Temperaturauflösung lässt sich daraus nicht ableiten.';
    }else{
-     paragraph.textContent=
-       m.mode.toUpperCase()+' – Sollwiderstand bei '+fmt(s.temperature,2)+' °C: '+fmt(m.rTarget,3)+' Ω. '+
+     paragraph.textContent=m.mode.toUpperCase()+' bei '+fmt(s.temperature,3)+' °C: '+
        (m.targetPossible
-       ?'Idealer nächster Code '+m.currentIndex+' → '+fmt(m.quantizedR,3)+' Ω. Daraus folgt eine theoretische Temperaturabweichung von '+fmt(m.temperatureError,5)+' K.'
-       :'Dieser Sollwiderstand liegt ausserhalb der angenommenen 5.9–25.9-kΩ-Widerstandsspanne und wäre mit diesem Konzept NICHT darstellbar.')+
-       ' Im definierten Temperaturbereich '+fmt(s.temperatureMin,2)+' bis '+fmt(s.temperatureMax,2)+' °C liegen ideal '+
-       fmt(m.representableCount,0)+' der 1’024 Codes. '+
-       (m.coveredMin!=null?'Die nutzbare Modellspanne reicht dabei nur von '+fmt(m.coveredMin,3)+' bis '+fmt(m.coveredMax,3)+' °C. ':'')+
-       (m.minTempStep!=null?'Benachbarte darstellbare Temperaturen unterscheiden sich um '+fmt(m.minTempStep,5)+' bis '+fmt(m.maxTempStep,5)+' K. ':'')+
-       'Dies ist nur eine hypothetische Abbildung. Weder NTC noch PTC ist derzeit in der echten Firmware umgesetzt.';
+        ?'Widerstand '+fmt(m.rTarget,3)+' Ω; idealer nächster Modellwert '+fmt(m.quantizedR,3)+
+          ' Ω. Theoretische Soll-/Modellabweichung '+fmt(m.temperatureError,6)+' °C.'
+        :'Der benötigte Widerstand ('+fmt(m.rTarget,3)+' Ω) ist mit dem vorläufigen Temperaturzweig nicht darstellbar.')+
+       ' Die Berechnung basiert auf einem idealisierten Widerstandsmodell. Die echte Hardware und Temperaturkennlinie sind nicht kalibriert.';
    }
    box.append(paragraph);
  }
- function renderTolerance(s,stages){
-   const fine=stages.find(x=>x.id==='fine');
+ function renderTolerance(s){
    const proposed=window.SensorBridgeNumbers?.parse($('toleranceGoalUv').value);
    const box=$('toleranceGoalResult');
    if(proposed==null||proposed<=0){
      box.textContent='Bitte ein gültiges positives Toleranzziel in µV eingeben (Komma oder Punkt möglich).';
      return;
    }
-   const idealWorst=fine.maxStepUv/2;
-   box.textContent=
-     'Ziel: ±'+fmt(proposed,5)+' µV. Ideales Rundungslimit am einzelnen Feinkanal '+
-     '(ungünstigster Schritt / 2): ±'+fmt(idealWorst,6)+' µV. '+
-     (idealWorst<=proposed
-       ?'Die ideale Codequantisierung dieses EINZELNEN Kanals wäre kleiner als dein Toleranzziel.'
-       :'Die ideale Codequantisierung dieses EINZELNEN Kanals wäre bereits grösser als dein Toleranzziel.')+
-     ' Das ist kein Nachweis der Gesamtgenauigkeit: Analogabweichung, Wiper, Widerstandstoleranzen, '+
-     'Rauschen, Temperaturdrift und Rückmessung sind noch offen. Die maximal erreichbare reale Toleranz ist unbekannt.';
+   const points=core.parameterResolution(s),fullSpanUv=Math.abs(points.fullSpanMv)*1000;
+   const targetPercent=fullSpanUv>1e-12?(proposed/fullSpanUv*100):null;
+   box.textContent='Gewünschte Ausgangstoleranz ±'+fmt(proposed,5)+' µV entspricht im eingestellten Sensorprofil '+
+     (targetPercent==null?'keiner berechenbaren Prozentangabe':'±'+fmt(targetPercent,7)+' Prozentpunkten des Vollhubs')+
+     '. Die tatsächliche Fehlergrenze für Hub, Temperatur, Nullpunkt und Gain ist noch NICHT ermittelt. '+
+     'Dazu benötigen wir die fertige kombinierte Schaltung, Kalibrierung und eine kalibrierte analoge Rückmessung.';
  }
  function renderParameterSteps(s){
    const resolution=core.parameterResolution(s);
@@ -213,7 +207,7 @@
    );
    const stages=renderStages(s);
    renderThermistor(s);
-   renderTolerance(s,stages);
+   renderTolerance(s);
    if(mainModel&&Math.abs(mainModel.out-z.total)>1e-8){
      const warning=$('resolutionExample');
      warning.textContent+=' Hinweis: Formel- und Hauptmodell weichen ab. Bitte Kennlinienparameter prüfen.';
