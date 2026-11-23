@@ -137,30 +137,61 @@
      ' Das ist kein Nachweis der Gesamtgenauigkeit: Analogabweichung, Wiper, Widerstandstoleranzen, '+
      'Rauschen, Temperaturdrift und Rückmessung sind noch offen. Die maximal erreichbare reale Toleranz ist unbekannt.';
  }
- function renderHub(s,hub){
-   if(!$('hubRequested'))return;
-   $('hubRequested').textContent=fmt(hub.targetPercent,5)+' % FS';
-   $('hubQuantized').textContent=hub.gridPercent==null?'Nicht berechenbar':fmt(hub.gridPercent,7)+' % FS';
-   $('hubDeviation').textContent=hub.gridDeviationPercent==null?'Nicht berechenbar':
-       (hub.gridDeviationPercent>0?'+':'')+fmt(hub.gridDeviationPercent,7)+' %-Punkte';
-   $('hubFineStep').textContent=hub.idealLocalPercentStep==null?'Nicht berechenbar':
-       fmt(hub.idealLocalPercentStep,7)+' % FS';
-   const tbody=$('hubStages');tbody.replaceChildren();
-   for(const stage of hub.stages){
-     const tr=document.createElement('tr');
-     const cols=[
-       stage.name,
-       stage.localStepPercent==null?'–':fmt(stage.localStepPercent,7)+' % FS',
-       stage.localMinPercent==null?'–':fmt(stage.localMinPercent,7)+' bis '+fmt(stage.localMaxPercent,7)+' % FS',
-       stage.isolatedCoveragePercent==null?'–':fmt(stage.isolatedCoveragePercent,5)+' % FS'
-     ];
-     for(const value of cols){const td=document.createElement('td');td.textContent=value;tr.append(td);}
-     tbody.append(tr);
+ function renderParameterSteps(s){
+   const resolution=core.parameterResolution(s);
+   if(!$('setpointSteps'))return resolution;
+   $('hubRequested').textContent=fmt(s.pressure,6)+' % FS';
+   $('resolutionOutput').textContent=fmt(resolution.outputMv,7)+' mV';
+   $('resolutionZero').textContent=fmt(resolution.zeroMv,7)+' mV';
+   $('resolutionSpan').textContent=fmt(resolution.fullSpanMv,7)+' mV';
+   const rows=[
+     ['setpointSteps',false],
+     ['calculationSetpointSteps',true]
+   ];
+   for(const [elementId,includeSpan] of rows){
+     const tbody=$(elementId);
+     if(!tbody)continue;
+     tbody.replaceChildren();
+     for(const row of resolution.rows){
+       const tr=document.createElement('tr');
+       const unit=row.unit==='×'?' ×':' '+row.unit;
+       const reference=fmt(row.setpoint,7)+unit;
+       const change=row.deltaUv==null?'–':fmt(row.deltaUv,7)+' µV';
+       let columns=[
+         row.name,
+         reference,
+         fmt(row.uiStep,7)+' '+row.uiUnit,
+         change
+       ];
+       if(includeSpan){
+         columns.push(row.fullSpanDeltaUv==null?'–':fmt(row.fullSpanDeltaUv,6)+' µV');
+       }
+       columns.push('Noch nicht ermittelt');
+       for(const value of columns){
+         const cell=document.createElement('td');cell.textContent=value;tr.append(cell);
+       }
+       tbody.append(tr);
+     }
    }
-   $('hubActualStatus').textContent='Echter Ist-Hub: nicht verfügbar. Ohne vermessene AD5270-Gesamtkennlinie und Rückmessung gibt es keine bestätigte %FS-Genauigkeit.';
-   $('hubPrecisionHint').textContent=hub.gridPercent!=null
-     ?'Beispielrundung: idealer Feinschritt bei Code 512→513, rechnerisch über den gesamten Hub wiederholt und bei 0 % verankert. Maximaler lokaler Rundungsfehler im Modell ca. ±'+fmt(hub.idealRoundingLimitPercent,7)+' %-Punkte. Grob-/Mittelabgleich wird ideal vorausgesetzt; die reale Hardware muss das NICHT erreichen.'
-     :'Bei dieser Kennlinie kann der gesuchte lokale Hubschritt nicht zuverlässig ermittelt werden (z. B. nichtmonotone Kennlinie oder fehlende Steigung). Die tatsächliche Hardwareauflösung ist weiterhin unbekannt.';
+   $('hubFineStep').textContent=resolution.hubIdealReferenceStep==null?
+       'Nicht berechenbar':'≈ '+fmt(resolution.hubIdealReferenceStep,7)+' % FS';
+   const therm=resolution.thermistor;
+   if(!therm.active){
+     $('tempFineStep').textContent='Nicht aktiviert';
+     $('tempStepDetails').textContent='PTC/NTC deaktiviert. Keine Temperatur-Widerstandsschritte vorhanden.';
+   }else if(!therm.targetPossible){
+     $('tempFineStep').textContent='Nicht darstellbar';
+     $('tempStepDetails').textContent='Das '+therm.mode.toUpperCase()+'-Soll liegt ausserhalb des angenommenen Widerstandsstellbereichs.';
+   }else if(therm.localTempStep==null){
+     $('tempFineStep').textContent='Nicht berechenbar';
+     $('tempStepDetails').textContent='Im gewählten Temperaturbereich konnte kein benachbarter gültiger Stellwert berechnet werden.';
+   }else{
+     $('tempFineStep').textContent='≈ '+fmt(therm.localTempStep,6)+' °C';
+     $('tempStepDetails').textContent=therm.mode.toUpperCase()+': idealer benachbarter Widerstandsschritt bei '+fmt(s.temperature,3)+' °C; '+fmt(therm.representableCount,0)+' Codes im gewählten Temperaturbereich. Kein validierter Analogausgang.';
+   }
+   $('hubActualStatus').textContent='Reale Stellauflösung: noch nicht ermittelt. Die kombinierte AD5270-Kennlinie, erreichbare Grenzen und elektrische Rückmessung fehlen.';
+   $('hubPrecisionHint').textContent='Die Tabelle zeigt die deklarierten Regler-/Formularschritte sowie die daraus berechnete Ausgangsänderung beim aktuellen Sollwert. Numerische Eingaben erlauben weitere Dezimalstellen. Die beiden Referenzen sind nur optimistische Einzelmodell-Rechnungen und keine garantierten Hardware-Schritte.';
+   return resolution;
  }
  function render(s,mainModel){
    if(!s||!$('calculationRows'))return;
@@ -171,16 +202,14 @@
    }
    $('calcFinal').textContent=fmt(z.total,8)+' mV';
    $('calcReference').textContent=fmt(z.total/s.excitation,8)+' mV/V · '+fmt(s.pressure,4)+' % FS';
-   const software=core.softwareMetrics(s),hub=core.hubPrecision(s),wrapper=$('resolutionSummaries');wrapper.replaceChildren();
-   renderHub(s,hub);
+   const software=core.softwareMetrics(s),parameterSteps=renderParameterSteps(s),wrapper=$('resolutionSummaries');wrapper.replaceChildren();
    wrapper.append(
-     metric('Druck-Slider',fmt(software.sliderPressure,3)+' % FS','Theoretisch '+fmt(software.pressurePositions,0)+' UI-Stellungen (0–100 %)'),
-     metric('Temperatur-Slider',fmt(software.sliderTemp,3)+' °C','Theoretisch '+fmt(software.temperaturePositions,0)+' UI-Stellungen · ΔSignal '+fmt(software.temperatureEffectUv,6)+' µV je Schritt am aktuellen Druck'),
-     metric('Druck-Schritt im Signal',fmt(software.pressureEffectUv,6)+' µV','Nur idealer linearer Hub, ohne die Nichtlinearität und Hysterese'),
-     metric('AD5270 pro Kanal','1’024 Codes','10 Bit · hardwareseitige Auflösung erst nach Validierung'),
-     metric('Fein-Hubschritt (ideal)',hub.idealLocalPercentStep==null?'–':fmt(hub.idealLocalPercentStep,7)+' % FS','Lokaler Spannungsschritt eines EINZELNEN Feinkanals (Code 512→513)'),
-     metric('Ideale Rundungsgrenze',hub.idealRoundingLimitPercent==null?'–':'±'+fmt(hub.idealRoundingLimitPercent,7)+' %-Punkte','Nur mathematisches Feinschritt-Raster, keine Hardware-Toleranz'),
-     metric('Gemessener Ist-Hub','Nicht verfügbar','Erst nach kalibrierter Rückmessung der fertigen Brücke')
+     metric('Hub-Reglerschritt',fmt(software.sliderPressure,3)+' % FS','Signaländerung am Sollpunkt '+fmt(parameterSteps.rows[0].deltaUv,6)+' µV'),
+     metric('Temperatur-Reglerschritt',fmt(software.sliderTemp,3)+' °C','Signaländerung am Sollpunkt '+fmt(parameterSteps.rows[1].deltaUv,6)+' µV'),
+     metric('Nullpunkt-Reglerschritt','0.001 mV','Entspricht 1 µV im mathematischen Modell'),
+     metric('Gain-Eingabeschritt','0.001 ×','Änderung des Vollhubs '+fmt(parameterSteps.rows[3].fullSpanDeltaUv,6)+' µV'),
+     metric('Spannen-Reglerschritt','0.001 mV/V','Änderung des Vollhubs '+fmt(parameterSteps.rows[4].fullSpanDeltaUv,6)+' µV'),
+     metric('Hardwareauflösung','Noch unbekannt','Wird nach Kalibrierung der Gesamtschaltung ergänzt')
    );
    const stages=renderStages(s);
    renderThermistor(s);
