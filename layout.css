@@ -513,3 +513,164 @@ footer { margin-top: 15px; padding-block: 12px; }
   #parameterFields > .field .field-head,
   #emulatorSetpoints .field-head { grid-template-columns: minmax(0,1fr); }
 }
+
+
+/* v0.7 — compact inline help and searchable Wiki; same ELMOS-style help symbol. */
+.help-trigger {
+  display: inline-grid;
+  place-items: center;
+  position: absolute;
+  top: -1px;
+  right: 0;
+  width: 21px;
+  height: 21px;
+  min-width: 21px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--blue);
+  background: var(--blue-soft);
+  cursor: pointer;
+  z-index: 1;
+}
+.help-trigger:hover,
+.help-trigger:focus-visible {
+  background: var(--hover);
+  border-color: var(--blue);
+}
+.physical-range-grid .uniform-control,
+.advanced > label,
+#parameterFields .field-head > label,
+#emulatorSetpoints .field-head > label,
+.mode-row > label,
+.physical-current .field-head > label,
+.profile-label {
+  position: relative;
+  padding-right: 24px;
+}
+#parameterFields .field-head > label,
+#emulatorSetpoints .field-head > label {
+  padding-right: 26px;
+}
+.panel h2,
+.section-head h2 {
+  position: relative;
+}
+.panel h2 > .help-trigger,
+.section-head h2 > .help-trigger {
+  position: relative;
+  top: auto;
+  right: auto;
+  display: inline-grid;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+.data-table .wiki-cell {
+  position: relative;
+  padding-right: 33px;
+}
+.data-table .wiki-cell > .help-trigger {
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+}
+.help-dialog {
+  width: min(530px,calc(100vw - 32px));
+  max-height: min(80vh,800px);
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 25px 75px #0004;
+  padding: 21px;
+}
+.help-dialog::backdrop {
+  background: rgba(11,26,42,.45);
+  backdrop-filter: blur(2px);
+}
+.help-dialog-head,
+.help-dialog-footer {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.help-dialog-head {
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 14px;
+  padding-bottom: 11px;
+}
+.help-dialog-head h2 { font-size: 18px; margin: 0; }
+.help-dialog-head .eyebrow { margin-bottom: 4px; }
+.help-dialog-head button { flex: none; }
+#helpDialogDescription { line-height: 1.65; margin-bottom: 12px; }
+.help-dialog-example {
+  padding: 12px 14px;
+  border-left: 3px solid var(--blue);
+  border-radius: 5px;
+  background: var(--subtle);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.help-dialog-footer {
+  margin-top: 17px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.wiki-panel { width: min(100%,1200px); max-width: 1200px; margin-inline: auto; }
+.wiki-search-label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 700; }
+#wikiSearch { width: 100%; max-width: 560px; height: 38px; }
+.wiki-categories { display: flex; gap: 7px; flex-wrap: wrap; margin: 13px 0; }
+.wiki-category { padding: 5px 10px; font-size: 11px; background: var(--subtle); }
+.wiki-category.selected {
+  color: var(--blue);
+  background: var(--blue-soft);
+  border-color: var(--blue);
+}
+.wiki-articles {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 9px;
+  align-items: start;
+}
+.wiki-entry {
+  min-width: 0;
+  margin: 0;
+  padding: 10px 13px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--subtle);
+}
+.wiki-entry summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 12px;
+  cursor: pointer;
+}
+.wiki-entry summary::marker { content: ""; }
+.wiki-entry summary:hover { color: var(--blue); }
+.wiki-entry-category {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.wiki-entry p { margin: 10px 0 0; font-size: 12px; line-height: 1.55; }
+.wiki-example {
+  padding: 8px 10px;
+  background: var(--paper);
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+@media(max-width:760px) {
+  .wiki-articles { grid-template-columns: 1fr; }
+  .help-dialog { padding: 15px; }
+}
