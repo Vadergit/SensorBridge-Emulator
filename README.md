@@ -10,6 +10,16 @@ A development project for simulating an untrimmed resistive pressure-sensor brid
 
 After enabling GitHub Pages (Settings → Pages → Deploy from branch → main / root), the application can run on the URL above via HTTPS. You can try all parameters immediately with **Demo mode**, without hardware.
 
+## Oberflächen- und Eingabeverbesserungen (v0.5)
+
+Die Formulare wurden in einem konsistenten Raster mit einheitlichen Beschriftungen, Feldhöhen, Einheiten, Abständen und responsiven Tabellen angeordnet. Zusätzlich sind die numerischen Eingabefelder auf **Schweizer Dezimalschreibweise** ausgelegt:
+
+- Sowohl `3,5` als auch `3.5` werden als **3.5** übernommen.
+- Während der Eingabe wird ein unvollständiger Wert (z. B. `3,`) nicht sofort ersetzt. Die Eingabe wird beim Verlassen des Feldes übernommen.
+- Der optionale Temperaturwiderstand ist wahlweise **Aus / PTC / NTC**. PTC verwendet R25 und einen linearen TK in ppm/K. NTC verwendet R25 und den Beta-Wert (Kelvin). Beide sind **nur mathematisch simuliert**.
+
+Neue JSON-Profile werden als `sensorbridge-profile/v4` exportiert. Ältere Profile mit `ptcEnabled` werden weiterhin unterstützt. Die BLE-Demofirmware unterstützt keinen realen NTC-Zweig und keine AD5270-Ansteuerung.
+
 ## Web Control Center v0.4
 
 The web UI has been reorganised into **seven workspaces** with a persistent left navigation, inspired by the ELMOS E703.11 calibration app. It supports **light, dark and system theme**.
