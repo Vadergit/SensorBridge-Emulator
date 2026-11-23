@@ -52,6 +52,20 @@ Status JSON example:
 
 The initial firmware responds with **`analogueEnabled: false`** and never controls SPI. The app must display this conspicuously.
 
+## Physical pressure and temperature (browser profile v3)
+
+The web UI accepts a real-world pressure value, engineering unit, pressure range, and °C temperature. The browser normalizes pressure before sending the **legacy BLE field 3**:
+
+```
+pressure_percent_FS = 100 * (pressure_actual - range_min) / (range_max - range_min)
+```
+
+For example, **0–10 bar and 6.5 bar** produce `3=65`. Field `4=75` sets a **simulated temperature of 75 °C**. Switching the web profile to psi does not change the signal or the normalized pressure.
+
+The BLE prototype **does not store the physical unit or pressure range**, so the web application and a future SSC calibration client must use the same profile. A later BLE protocol must transmit range, unit, pressure mode, full characteristics, and settled analogue readback atomically.
+
+The physical-reference selector (gauge vs absolute) is **metadata only** in this revision and does not add or subtract atmospheric pressure.
+
 ## External integration
 
 The calibration web application can embed this panel or import the `app.js` controller routines. Web Bluetooth access requires:
