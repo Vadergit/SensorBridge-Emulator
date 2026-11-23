@@ -200,8 +200,66 @@ function hubPrecision(s){
    caveat:'Nur eine idealisierte Rundung mit einem gleichmässig wiederholten Feinschritt, keine real verifizierte Hubauflösung. Die Grob-/Mittelpositionierung, kombinierte Netlist, Leckströme, Rauschen und Rückmessung fehlen.'
  };
 }
+/**
+ * Sensor-parameter-oriented resolution.
+ * These are UI control increments, not achievable hardware increments.
+ * Candidate ADC/AD5270 theoretical figures are explicitly separated.
+ */
+function parameterResolution(s){
+ const pressureStep=0.001,temperatureStep=0.001,offsetStep=0.001;
+ const gainStep=0.001,spanStep=0.001;
+ const output=calculate(s).total;
+ function delta(key,step,min,max){
+   const before=s[key];
+   if(!Number.isFinite(before))return null;
+   const after=before+step<=max?before+step:
+     before-step>=min?before-step:null;
+   if(after===null)return null;
+   const changed=calculate({...s,[key]:after}).total;
+   return Number.isFinite(changed)?(changed-output)*1000:null; // µV
+ }
+ function absOrNull(value){return Number.isFinite(value)?Math.abs(value):null;}
+ const hub=hubPrecision(s);
+ const therm=thermistorMetrics(s);
+ const zero=calculate({...s,pressure:0}).total;
+ const full=calculate({...s,pressure:100}).total-zero;
+ const slope=hub.localSlopeUvPerPercent;
+ const referenceHub=hub.idealLocalPercentStep;
+ const temperatureModelStep=therm.active && therm.targetPossible &&
+   Number.isFinite(therm.actualTemp) ? Math.abs(therm.temperatureError) : null;
+ const rows=[
+   {id:'pressure',name:'Hub / Druck',setpoint:s.pressure,unit:'% FS',
+    uiStep:pressureStep,uiUnit:'% FS',deltaUv:absOrNull(delta('pressure',pressureStep,0,100)),
+    hardware:'Offen',reference:referenceHub,
+    referenceUnit:'% FS'},
+   {id:'temperature',name:'Temperatur',setpoint:s.temperature,unit:'°C',
+    uiStep:temperatureStep,uiUnit:'°C',
+    deltaUv:absOrNull(delta('temperature',temperatureStep,s.temperatureMin,s.temperatureMax)),
+    hardware:'Offen',reference:therm.active&&therm.targetPossible?therm.minTempStep:null,
+    referenceUnit:'°C'},
+   {id:'offset',name:'Nullpunktversatz',setpoint:s.offset,unit:'mV',
+    uiStep:offsetStep,uiUnit:'mV',deltaUv:absOrNull(delta('offset',offsetStep,-1000,1000)),
+    hardware:'Offen',reference:null,referenceUnit:null},
+   {id:'gain',name:'Brücken-Gain',setpoint:s.bridgeGain,unit:'×',
+    uiStep:gainStep,uiUnit:'×',deltaUv:absOrNull(delta('bridgeGain',gainStep,0.01,10)),
+    hardware:'Offen',reference:null,referenceUnit:null},
+   {id:'span',name:'Signalspanne',setpoint:s.span,unit:'mV/V',
+    uiStep:spanStep,uiUnit:'mV/V',deltaUv:absOrNull(delta('span',spanStep,1,4)),
+    hardware:'Offen',reference:null,referenceUnit:null}
+ ];
+ return {rows,outputMv:output,zeroMv:zero,fullSpanMv:full,
+   hubTarget:s.pressure,temperatureTarget:s.temperature,
+   thermistor:therm,temperatureModelStep,
+   hubIdealReferenceStep:referenceHub,
+   hubReferenceMin:hub.fine.localMinPercent,
+   hubReferenceMax:hub.fine.localMaxPercent,
+   hubActualReached:null,temperatureActualReached:null,
+   hardwareVerified:false,
+   warning:'Keine tatsächlichen Sensorausgangs-Stellschritte ableitbar: Schaltplan, kombinierte 8-Kanal-Kennlinie und Rückmessung fehlen. UI-Stellraster und isolierte Rechenreferenz sind keine garantierte Hardwareauflösung.'
+ };
+}
 root.SensorBridgeEquations=Object.freeze({
- calculate,hubPrecision,shuntOutputMv,stageMetrics,thermistorMetrics,softwareMetrics,fmt,STAGES,
+ calculate,hubPrecision,parameterResolution,shuntOutputMv,stageMetrics,thermistorMetrics,softwareMetrics,fmt,STAGES,
  positionsPerAD5270:N
 });
 })(window);
