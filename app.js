@@ -15,6 +15,7 @@ let expectedLimits = {};
 let testPoints = CHAR.defaultTestPoints().map((p,i)=>({...p,pressureValue:PRESSURE.physical(p.pressure,0,100),id:i+1}));
 let nextPointId = testPoints.length+1;
 let profileName = 'Neues Sensorprofil';
+window.SensorBridgeCurrentState=()=>({...state});
 let lastPhysicalSelection={unit:'bar',min:0,max:10}; // Example only; %FS has no physical unit
 let device = null, writeCharacteristic = null, statusCharacteristic = null;
 const $ = id => document.getElementById(id);
@@ -98,6 +99,7 @@ function render(){
   renderChart();
   renderExpectedResults();
   renderPointResults();
+  window.SensorBridgeEquationsUI?.render(state,m);
 }
 // Do not rewrite a focused decimal field during typing: e.g. 2, / 0. / -0,5.
 function syncForm(){
