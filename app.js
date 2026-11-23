@@ -102,12 +102,19 @@ async function readStatus(){
 async function send(){
  if(!writeCharacteristic)return;
  try {
-   const command={v:1,type:'set_config',profile:state};
-   // BLE characteristic writes may be limited by MTU; keep messages short or implement framing.
-   const payload=JSON.stringify(command),encoded=new TextEncoder().encode(payload);
-   if(encoded.length>180)throw Error('Protokoll-Paket zu gross für ungetestete BLE-MTU. Chunking ist noch nicht implementiert.');
-   await writeCharacteristic.writeValueWithResponse(encoded);await readStatus();
- }catch(err){uiNotice('Befehl nicht gesendet: '+err.message,'error');}
+   const fields=['excitation','span','offset','pressure','temperature','tk0','tke','nonlinearity','drift','ptcEnabled','ptcR25','ptcPpm'];
+   for(let i=0;i<fields.length;i++){
+     // Short one-setting command (~18 bytes), works on conservative BLE MTUs.
+     const val=fields[i]==='ptcEnabled'?(state.ptcEnabled?1:0):state[fields[i]];
+     const payload=JSON.stringify({v:1,k:'0123456789ab'[i],x:val});
+     const encoded=new TextEncoder().encode(payload);
+     if(encoded.length>20)throw Error('BLE-Wert zu gross ('+fields[i]+')');
+     await writeCharacteristic.writeValueWithResponse(encoded);
+   }
+   await readStatus();
+   uiNotice('12 Parameter an BLE-Prototyp übertragen. Analoger Ausgang bleibt unbestätigt bzw. deaktiviert.');
+ }catch(err){uiNotice('Befehl fehlgeschlagen: '+err.message,'error');}
 }
+
 $('connectBtn').addEventListener('click',connectBLE);$('disconnectBtn').addEventListener('click',()=>device?.gatt?.disconnect());$('readBtn').addEventListener('click',readStatus);$('sendBtn').addEventListener('click',send);
 syncForm();setMode(false);
