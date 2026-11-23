@@ -14,29 +14,32 @@ This document defines the future interface between the UI, ESP32-C3 firmware, an
 
 Device name: `SensorBridge-C3`.
 
-### Short command frame
+### Compact one-parameter command frames
 
-To fit into modest BLE MTU sizes we send an ordered parameter vector:
+Each parameter is sent separately using a short JSON command, so a single write is typically ≤20 bytes even with a small BLE ATT MTU:
 
 ```json
-{"v":1,"t":"set","p":[5,2,0,50,25,0,0,0,0,0,10000,4000]}
+{"v":1,"k":"3","x":50}
 ```
 
-Order of fields:
-1. excitation V
-2. span mV/V
-3. offset mV
-4. pressure %
-5. temperature °C
-6. TK0 µV/V/K
-7. TKE ppm/K
-8. nonlinearity % FS
-9. drift µV
-10. PTC enabled 0/1
-11. PTC R at 25 °C in Ω
-12. PTC coefficient ppm/K
+The letter/digit key maps to a parameter:
 
-Do not use the state of this frame as proof of a physical output. The analogue stage must report an additional hardware-enabled/readback flag after validated implementation.
+| key | parameter |
+|---|---|
+| 0 | excitation V |
+| 1 | span mV/V |
+| 2 | zero offset mV |
+| 3 | pressure % |
+| 4 | temperature °C |
+| 5 | TK0 µV/V/K |
+| 6 | TKE ppm/K |
+| 7 | nonlinearity %FS |
+| 8 | drift µV |
+| 9 | PTC enabled: 0 / 1 |
+| a | PTC resistance at 25°C, Ω |
+| b | PTC coefficient ppm/K |
+
+The browser sends **12 writes sequentially**. This is an early transport: an interrupted connection may result in a partially updated profile. Use a future atomic commit/sequence-number protocol before allowing real analogue outputs or automated calibration.
 
 ### Read status
 
