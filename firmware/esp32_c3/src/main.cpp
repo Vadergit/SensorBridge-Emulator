@@ -27,7 +27,7 @@ class CommandCallbacks final : public NimBLECharacteristicCallbacks {
     const std::string message = characteristic->getValue();
     StaticJsonDocument<128> parsed; // ArduinoJson 6-style API (supported in 6.x)
     const DeserializationError error = deserializeJson(parsed, message);
-    if(error || parsed["v"] != 1 || !parsed["k"].is<const char*>() || !parsed["x"].is<double>()) {
+    if(error || parsed["v"] != 1 || !parsed["k"].is<const char*>() || !(parsed["x"].is<double>() || parsed["x"].is<float>() || parsed["x"].is<int>() || parsed["x"].is<long>())) {
       Serial.println("Invalid BLE command");
       publishStatus();
       return;
