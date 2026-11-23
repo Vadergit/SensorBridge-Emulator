@@ -301,3 +301,11 @@ Der SensorBridge Emulator soll ein Sensorsignal elektrisch nachbilden. Die aktue
 ---
 
 Das interaktive Wiki ist direkt in der [SensorBridge-Weboberfläche](https://vadergit.github.io/SensorBridge-Emulator/#wiki) integriert.
+
+## Schrittweite und Genauigkeit (v0.8)
+
+Für die neuen Begriffe **RDAC**, **Auflösung**, **Quantisierung**, **Toleranz**, **Grob-/Mittel-/Feinabgleich** und **Temperaturschritte** siehe die erweiterten interaktiven Wiki-Artikel.
+
+Alle allgemeinen Formeln, vollständige Zahlenbeispiele, AD5270-Einzelarmrechnungen, Modellgrenzen und Toleranzannahmen stehen auch in [Formeln, Schrittweiten und theoretische Auflösung](CALCULATIONS_AND_RESOLUTION.md).
+
+**Hinweis:** Die feinste in einem Modell errechnete Schrittweite ist keine gemessene Ausgangstoleranz. Erst ein fertig aufgebautes und überprüftes Board ermöglicht eine Aussage über die reale Genauigkeit.
