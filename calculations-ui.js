@@ -137,6 +137,30 @@
      ' Das ist kein Nachweis der Gesamtgenauigkeit: Analogabweichung, Wiper, Widerstandstoleranzen, '+
      'Rauschen, Temperaturdrift und Rückmessung sind noch offen. Die maximal erreichbare reale Toleranz ist unbekannt.';
  }
+ function renderHub(s,hub){
+   if(!$('hubRequested'))return;
+   $('hubRequested').textContent=fmt(hub.targetPercent,5)+' % FS';
+   $('hubQuantized').textContent=hub.gridPercent==null?'Nicht berechenbar':fmt(hub.gridPercent,7)+' % FS';
+   $('hubDeviation').textContent=hub.gridDeviationPercent==null?'Nicht berechenbar':
+       (hub.gridDeviationPercent>0?'+':'')+fmt(hub.gridDeviationPercent,7)+' %-Punkte';
+   $('hubFineStep').textContent=hub.idealLocalPercentStep==null?'Nicht berechenbar':
+       fmt(hub.idealLocalPercentStep,7)+' % FS';
+   const tbody=$('hubStages');tbody.replaceChildren();
+   for(const stage of hub.stages){
+     const tr=document.createElement('tr');
+     const cols=[
+       stage.name,
+       stage.localStepPercent==null?'–':fmt(stage.localStepPercent,7)+' % FS',
+       stage.localMinPercent==null?'–':fmt(stage.localMinPercent,7)+' bis '+fmt(stage.localMaxPercent,7)+' % FS'
+     ];
+     for(const value of cols){const td=document.createElement('td');td.textContent=value;tr.append(td);}
+     tbody.append(tr);
+   }
+   $('hubActualStatus').textContent='Echter Ist-Hub: nicht verfügbar. Ohne vermessene AD5270-Gesamtkennlinie und Rückmessung gibt es keine bestätigte %FS-Genauigkeit.';
+   $('hubPrecisionHint').textContent=hub.gridPercent!=null
+     ?'Beispielrundung: idealer Feinschritt bei Code 512→513, rechnerisch über den gesamten Hub wiederholt und bei 0 % verankert. Maximaler lokaler Rundungsfehler im Modell ca. ±'+fmt(hub.idealRoundingLimitPercent,7)+' %-Punkte. Grob-/Mittelabgleich wird ideal vorausgesetzt; die reale Hardware muss das NICHT erreichen.'
+     :'Bei dieser Kennlinie kann der gesuchte lokale Hubschritt nicht zuverlässig ermittelt werden (z. B. nichtmonotone Kennlinie oder fehlende Steigung). Die tatsächliche Hardwareauflösung ist weiterhin unbekannt.';
+ }
  function render(s,mainModel){
    if(!s||!$('calculationRows'))return;
    const z=core.calculate(s),numbers=rowValues(s,z);
@@ -146,12 +170,16 @@
    }
    $('calcFinal').textContent=fmt(z.total,8)+' mV';
    $('calcReference').textContent=fmt(z.total/s.excitation,8)+' mV/V · '+fmt(s.pressure,4)+' % FS';
-   const software=core.softwareMetrics(s),wrapper=$('resolutionSummaries');wrapper.replaceChildren();
+   const software=core.softwareMetrics(s),hub=core.hubPrecision(s),wrapper=$('resolutionSummaries');wrapper.replaceChildren();
+   renderHub(s,hub);
    wrapper.append(
      metric('Druck-Slider',fmt(software.sliderPressure,3)+' % FS','Theoretisch '+fmt(software.pressurePositions,0)+' UI-Stellungen (0–100 %)'),
      metric('Temperatur-Slider',fmt(software.sliderTemp,3)+' °C','Theoretisch '+fmt(software.temperaturePositions,0)+' UI-Stellungen · ΔSignal '+fmt(software.temperatureEffectUv,6)+' µV je Schritt am aktuellen Druck'),
      metric('Druck-Schritt im Signal',fmt(software.pressureEffectUv,6)+' µV','Nur idealer linearer Hub, ohne die Nichtlinearität und Hysterese'),
-     metric('AD5270 pro Kanal','1’024 Codes','10 Bit · hardwareseitige Auflösung erst nach Validierung')
+     metric('AD5270 pro Kanal','1’024 Codes','10 Bit · hardwareseitige Auflösung erst nach Validierung'),
+     metric('Fein-Hubschritt (ideal)',hub.idealLocalPercentStep==null?'–':fmt(hub.idealLocalPercentStep,7)+' % FS','Lokaler Spannungsschritt eines EINZELNEN Feinkanals (Code 512→513)'),
+     metric('Ideale Rundungsgrenze',hub.idealRoundingLimitPercent==null?'–':'±'+fmt(hub.idealRoundingLimitPercent,7)+' %-Punkte','Nur mathematisches Feinschritt-Raster, keine Hardware-Toleranz'),
+     metric('Gemessener Ist-Hub','Nicht verfügbar','Erst nach kalibrierter Rückmessung der fertigen Brücke')
    );
    const stages=renderStages(s);
    renderThermistor(s);
