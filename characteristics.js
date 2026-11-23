@@ -69,9 +69,9 @@ const defaultTestPoints=()=>[
 ];
 function checkLimits(value,limit){
  if(!limit||limit.min==null&&limit.max==null)return 'unset';
+ if(limit.min!=null&&limit.max!=null&&limit.min>limit.max)return 'invalid';
  if(limit.min!=null&&value<limit.min)return 'fail';
  if(limit.max!=null&&value>limit.max)return 'fail';
- if(limit.min!=null&&limit.max!=null&&limit.min>limit.max)return 'invalid';
  return 'pass';
 }
 root.SensorBridgeCharacteristics=Object.freeze({extraDefaults,extraRanges,expectedDefinitions,defaultTestPoints,calculate,checkLimits});
