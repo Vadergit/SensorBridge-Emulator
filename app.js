@@ -203,7 +203,7 @@ $('pressureActualNumber').addEventListener('change',event=>{
 });
 for(const key of ['pressureMin','pressureMax','temperatureMin','temperatureMax'])$(key).addEventListener('change',()=>{
  setPhysicalRange();
- // Commit normalisation happens after leaving the field.
+ $(key).value=state[key];
 });
 $('pressureUnit').addEventListener('change',event=>switchPressureUnit(event.target.value));
 $('pressureReference').addEventListener('change',event=>{state.pressureReference=event.target.value;syncForm();});
