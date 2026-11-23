@@ -67,6 +67,25 @@ Die **Schritte sind nicht konstant**: Die exakte Ausgangsspannung ist eine nicht
 
 **Wichtige Konsequenz:** Selbst wenn ein *einziger* idealer Feinabgleich-Zweig in dieser Rechnung Schritte von rund 0.06 µV hätte, sind die reale Gesamtausgangsspanne und die Feinauflösung von der späteren Kombination der Grob-, Mittel- und Feinkanäle, dem Kalibrationsalgorithmus sowie vom Rauschen und den Leckströmen abhängig. `1024^8` mögliche Codes sind **keine** Garantie für dieselbe Anzahl unabhängiger, stabiler und gleichmässig verteilter Ausgangssignale.
 
+## Direkte Umrechnung von µV in % des Sensorhubs
+
+Die lokale ideale Hubauflösung ergibt sich aus der AD5270-Spannungsänderung geteilt durch die Steigung der **aktuellen** Sensorkennlinie:
+
+```
+ΔHub [% FS] ≈ ΔV_AD5270 [µV] / |d(Vout [µV]) / d(Hub [% FS])|
+
+Beispiel:
+Sollspanne = 2 mV/V × 5 V = 10'000 µV über 100 % FS
+Steigung = 10'000 µV / 100 % FS = 100 µV / % FS
+AD5270-Feinschritt am Code 512→513 ≈ 0.058066 µV
+Idealer Hubschritt ≈ 0.058066 / 100 = 0.00058066 % FS
+Halber idealer Schritt ≈ ±0.00029033 Prozentpunkte
+```
+
+Die Simulationssoftware bestimmt die lokale Steigung numerisch um den eingestellten Hubpunkt (einschliesslich Temperatur, TKE, Gain, Nichtlinearität, Hysterese und Kriechen). Bei einer nicht steigenden oder nicht eindeutigen Kennlinie wird keine fiktive gerundete Druckposition behauptet.
+
+Die Tabelle zeigt zusätzlich, wie viel % FS ein *einzelner* Stellkanal über alle seine Codes insgesamt verändern würde. **Achtung:** Ein Grobzweig kann in der isolierten Idealbetrachtung weit mehr als 100 % einer kleinen Sensor-Nennspanne verändern. Das ist kein nutzbarer kalibrierter Messbereich und kann die SSC-Eingangsgrenzen überschreiten. Es darf nicht mit dem stabil einstellbaren Gesamtbereich der acht Kanäle verwechselt werden.
+
 ## Live-Hubauflösung in % FS
 
 Unter **Emulation** direkt neben dem Druck-Setpoint werden jetzt vier Werte angezeigt:
