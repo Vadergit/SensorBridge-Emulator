@@ -93,6 +93,22 @@ function thermistorMetrics(s){
    :null;
  const quantizedR=currentIndex==null?null:series+pot*currentIndex/N;
  const actualTemp=quantizedR==null?null:solveTemperature(quantizedR);
+ let localTempStep=null;
+ if(currentIndex!=null){
+   const localR=series+pot*currentIndex/N;
+   const candidates=[];
+   for(const neighbor of [currentIndex-1,currentIndex+1]){
+     if(neighbor<0||neighbor>=N)continue;
+     const neighborTemp=solveTemperature(series+pot*neighbor/N);
+     const localTemp=solveTemperature(localR);
+     if(Number.isFinite(localTemp)&&Number.isFinite(neighborTemp) &&
+        localTemp>=s.temperatureMin&&localTemp<=s.temperatureMax &&
+        neighborTemp>=s.temperatureMin&&neighborTemp<=s.temperatureMax){
+       candidates.push(Math.abs(localTemp-neighborTemp));
+     }
+   }
+   if(candidates.length)localTempStep=Math.min(...candidates);
+ }
  const temperatureSteps=[];
  for(let k=1;k<legal.length;k++){
   // Only consecutive codes are a real adjacent step.
@@ -101,6 +117,7 @@ function thermistorMetrics(s){
  return {mode,active:true,series,pot,positions:N,codeIntervalOhms:pot/N,
   possibleMin,possibleMax,rTarget,targetPossible,currentIndex,quantizedR,actualTemp,
   temperatureError:actualTemp==null?null:actualTemp-s.temperature,
+  localTempStep,
   representableCount:legal.length,
   coveredMin:temps.length?Math.min(...temps):null,
   coveredMax:temps.length?Math.max(...temps):null,
@@ -219,6 +236,13 @@ function parameterResolution(s){
    return Number.isFinite(changed)?(changed-output)*1000:null; // µV
  }
  function absOrNull(value){return Number.isFinite(value)?Math.abs(value):null;}
+ function fullSpanDelta(key,step,min,max){
+   const current=s[key];
+   const proposed=current+step<=max?current+step:current-step>=min?current-step:null;
+   if(proposed===null)return null;
+   const span=x=>calculate({...s,...x,pressure:100}).total-calculate({...s,...x,pressure:0}).total;
+   return Math.abs(span({[key]:proposed})-span({}))*1000;
+ }
  const hub=hubPrecision(s);
  const therm=thermistorMetrics(s);
  const zero=calculate({...s,pressure:0}).total;
@@ -242,10 +266,10 @@ function parameterResolution(s){
     hardware:'Offen',reference:null,referenceUnit:null},
    {id:'gain',name:'Brücken-Gain',setpoint:s.bridgeGain,unit:'×',
     uiStep:gainStep,uiUnit:'×',deltaUv:absOrNull(delta('bridgeGain',gainStep,0.01,10)),
-    hardware:'Offen',reference:null,referenceUnit:null},
+    hardware:'Offen',fullSpanDeltaUv:fullSpanDelta('bridgeGain',gainStep,0.01,10),reference:null,referenceUnit:null},
    {id:'span',name:'Signalspanne',setpoint:s.span,unit:'mV/V',
     uiStep:spanStep,uiUnit:'mV/V',deltaUv:absOrNull(delta('span',spanStep,1,4)),
-    hardware:'Offen',reference:null,referenceUnit:null}
+    hardware:'Offen',fullSpanDeltaUv:fullSpanDelta('span',spanStep,1,4),reference:null,referenceUnit:null}
  ];
  return {rows,outputMv:output,zeroMv:zero,fullSpanMv:full,
    hubTarget:s.pressure,temperatureTarget:s.temperature,
