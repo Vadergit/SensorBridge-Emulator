@@ -8,6 +8,8 @@
 <title>SensorBridge Emulator · Control Center</title>
 <script>try {document.documentElement.dataset.theme=localStorage.getItem('sensorbridge-theme-v1')==='dark'?'dark':'light'}catch(e){}</script>
 <link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./layout.css">
+<script defer src="./number-utils.js"></script>
 <script defer src="./pressure-units.js"></script>
 <script defer src="./characteristics.js"></script>
 <script defer src="./profiles-ui.js"></script>
@@ -71,60 +73,65 @@
         <div class="physical-setpoints">
           <div class="section-head"><div><h2>Physikalischer Messbereich</h2><small>Druck in echten Einheiten; der Hub in % wird automatisch berechnet</small></div><span class="tag">PRESSURE / TEMPERATURE</span></div>
           <div class="physical-range-grid">
-            <label>Druck von <small id="pressureMinUnit">bar</small><input id="pressureMin" type="number" step="any" value="0"></label>
-            <label>Druck bis <small id="pressureMaxUnit">bar</small><input id="pressureMax" type="number" step="any" value="10"></label>
-            <label>Druckeinheit
-              <select id="pressureUnit"><option value="bar">bar</option><option value="mbar">mbar</option><option value="kPa">kPa</option><option value="MPa">MPa</option><option value="psi">psi</option><option value="Pa">Pa</option></select>
-            </label>
-            <label>Bezug
-              <select id="pressureReference"><option value="gauge">Relativdruck</option><option value="absolute">Absolutdruck</option></select>
-            </label>
-            <label>Temperatur von <small>°C</small><input id="temperatureMin" type="number" min="-40" max="125" step="any" value="-40"></label>
-            <label>Temperatur bis <small>°C</small><input id="temperatureMax" type="number" min="-40" max="125" step="any" value="125"></label>
+            <label class="uniform-control"><span>Druck von</span><small id="pressureMinUnit">bar</small><input id="pressureMin" type="text" inputmode="decimal" autocomplete="off" value="0"></label>
+            <label class="uniform-control"><span>Druck bis</span><small id="pressureMaxUnit">bar</small><input id="pressureMax" type="text" inputmode="decimal" autocomplete="off" value="10"></label>
+            <label class="uniform-control"><span>Druckeinheit</span><small>Einheit des Messbereichs</small><select id="pressureUnit"><option value="bar">bar</option><option value="mbar">mbar</option><option value="kPa">kPa</option><option value="MPa">MPa</option><option value="psi">psi</option><option value="Pa">Pa</option></select></label>
+            <label class="uniform-control"><span>Bezug</span><small>Referenz des Drucks</small><select id="pressureReference"><option value="gauge">Relativdruck</option><option value="absolute">Absolutdruck</option></select></label>
+            <label class="uniform-control"><span>Temperatur von</span><small>°C</small><input id="temperatureMin" type="text" inputmode="decimal" autocomplete="off" value="-40"></label>
+            <label class="uniform-control"><span>Temperatur bis</span><small>°C</small><input id="temperatureMax" type="text" inputmode="decimal" autocomplete="off" value="125"></label>
           </div>
           <div class="physical-current">
-            <div class="field-head"><label for="pressureActual">Aktuell anliegender Druck</label><div><input id="pressureActualNumber" type="number" step="any" value="5"><span id="pressureActualUnit">bar</span></div></div>
-            <input id="pressureActual" type="range" min="0" max="10" value="5" step="0.01">
+            <div class="field-head"><label for="pressureActual">Aktuell anliegender Druck</label><div><input id="pressureActualNumber" type="text" inputmode="decimal" autocomplete="off" value="5"><span id="pressureActualUnit">bar</span></div></div>
+            <input id="pressureActual" type="range" min="0" max="10" value="5" step="0.001">
             <p class="hint" id="pressureConversion">5 bar = 50 % des Messbereichs · 25 °C</p>
           </div>
         </div>
         <div class="line"></div>
         <div id="parameterFields">
-          <div class="field" data-field="excitation"><div class="field-head"><label for="excitation">Brückenspeisung</label><div><input id="excitationNumber" type="number" min="0.1" max="5.5" step="0.1"><span>V</span></div></div><input id="excitation" type="range" min="0.1" max="5.5" step="0.1"></div>
-          <div class="field" data-field="span"><div class="field-head"><label for="span">Signalspanne</label><div><input id="spanNumber" type="number" min="1" max="4" step="0.01"><span>mV/V</span></div></div><input id="span" type="range" min="1" max="4" step="0.01"></div>
-          <div class="field" data-field="offset"><div class="field-head"><label for="offset">Nullpunktversatz</label><div><input id="offsetNumber" type="number" min="-1000" max="1000" step="0.1"><span>mV</span></div></div><input id="offset" type="range" min="-1000" max="1000" step="0.1"></div>
-          <div class="field" data-field="pressure"><div class="field-head"><label for="pressure">Druck / Hub (% FS)</label><div><input id="pressureNumber" type="number" min="0" max="100" step="0.1"><span>%</span></div></div><input id="pressure" type="range" min="0" max="100" step="0.1"></div>
-          <div class="field" data-field="temperature"><div class="field-head"><label for="temperature">Aktuelle Temperatur</label><div><input id="temperatureNumber" type="number" min="-40" max="125" step="0.1"><span>°C</span></div></div><input id="temperature" type="range" min="-40" max="125" step="0.1"></div>
+          <div class="field" data-field="excitation"><div class="field-head"><label for="excitation">Brückenspeisung</label><div><input id="excitationNumber" type="text" inputmode="decimal" autocomplete="off" min="0.1" max="5.5" step="0.001"><span>V</span></div></div><input id="excitation" type="range" min="0.1" max="5.5" step="0.001"></div>
+          <div class="field" data-field="span"><div class="field-head"><label for="span">Signalspanne</label><div><input id="spanNumber" type="text" inputmode="decimal" autocomplete="off" min="1" max="4" step="0.001"><span>mV/V</span></div></div><input id="span" type="range" min="1" max="4" step="0.001"></div>
+          <div class="field" data-field="offset"><div class="field-head"><label for="offset">Nullpunktversatz</label><div><input id="offsetNumber" type="text" inputmode="decimal" autocomplete="off" min="-1000" max="1000" step="0.001"><span>mV</span></div></div><input id="offset" type="range" min="-1000" max="1000" step="0.001"></div>
+          <div class="field" data-field="pressure"><div class="field-head"><label for="pressure">Druck / Hub (% FS)</label><div><input id="pressureNumber" type="text" inputmode="decimal" autocomplete="off" min="0" max="100" step="0.001"><span>%</span></div></div><input id="pressure" type="range" min="0" max="100" step="0.001"></div>
+          <div class="field" data-field="temperature"><div class="field-head"><label for="temperature">Aktuelle Temperatur</label><div><input id="temperatureNumber" type="text" inputmode="decimal" autocomplete="off" min="-40" max="125" step="0.001"><span>°C</span></div></div><input id="temperature" type="range" min="-40" max="125" step="0.001"></div>
         </div>
         <div class="quick"><button data-pressure="0">0 %</button><button data-pressure="25">25 %</button><button data-pressure="50">50 %</button><button data-pressure="75">75 %</button><button data-pressure="100">100 %</button></div>
         <div class="line"></div>
         <details open><summary>Temperaturkoeffizienten und Fehler</summary>
           <div class="advanced">
-          <label>TK0 <small>µV/V/K</small><input id="tk0" type="number" step="0.5"></label>
-          <label>TKE <small>ppm/K</small><input id="tke" type="number" step="10"></label>
-          <label>Nichtlinearität <small>% FS</small><input id="nonlinearity" type="number" step="0.01"></label>
-          <label>Drift <small>µV</small><input id="drift" type="number" step="0.1"></label>
+          <label>TK0 <small>µV/V/K</small><input id="tk0" type="text" inputmode="decimal" autocomplete="off" step="0.5"></label>
+          <label>TKE <small>ppm/K</small><input id="tke" type="text" inputmode="decimal" autocomplete="off" step="10"></label>
+          <label>Nichtlinearität <small>% FS</small><input id="nonlinearity" type="text" inputmode="decimal" autocomplete="off" step="0.001"></label>
+          <label>Drift <small>µV</small><input id="drift" type="text" inputmode="decimal" autocomplete="off" step="0.001"></label>
           </div>
         </details>
 <div class="line"></div>
         <details open class="parameter-section"><summary>Brücke, Gain und Hysterese</summary>
           <p class="hint">Brücken-Gain ist ein dimensionsloser Multiplikator für die eingestellte Spanne. Auf- und Abwärtskennlinien unterscheiden sich um die Hysterese in % des Vollhubs (Maximum bei 50 %).</p>
           <div class="advanced">
-            <label>Brücken-Gain <small>× Spanne</small><input id="bridgeGain" type="number" min="0.01" max="10" step="0.01"></label>
-            <label>Brückenwiderstand <small>Ω · nominell je Arm</small><input id="bridgeResistance" type="number" min="100" max="1000000" step="100"></label>
-            <label>Hysterese <small>% FS (Auf/Ab bei 50 %)</small><input id="hysteresis" type="number" min="0" max="20" step="0.01"></label>
+            <label>Brücken-Gain <small>× Spanne</small><input id="bridgeGain" type="text" inputmode="decimal" autocomplete="off" min="0.01" max="10" step="0.001"></label>
+            <label>Brückenwiderstand <small>Ω · nominell je Arm</small><input id="bridgeResistance" type="text" inputmode="decimal" autocomplete="off" min="100" max="1000000" step="100"></label>
+            <label>Hysterese <small>% FS (Auf/Ab bei 50 %)</small><input id="hysteresis" type="text" inputmode="decimal" autocomplete="off" min="0" max="20" step="0.001"></label>
             <label>Belastungsrichtung <small>gewählte Kennlinie</small><select id="direction"><option value="up">Aufwärts (↑)</option><option value="down">Abwärts (↓)</option></select></label>
-            <label>TK0-Krümmung <small>µV/V/K²</small><input id="tk0Quadratic" type="number" min="-100" max="100" step="0.01"></label>
-            <label>TKE-Krümmung <small>ppm/K²</small><input id="tkeQuadratic" type="number" min="-10000" max="10000" step="0.1"></label>
-            <label>Kriechen <small>% FS · asymptotisch</small><input id="creepPercentFS" type="number" min="-20" max="20" step="0.01"></label>
-            <label>Zeitkonstante <small>Sekunden</small><input id="creepTauS" type="number" min="0.1" max="3600" step="1"></label>
-            <label>Verstrichene Zeit <small>Sekunden</small><input id="elapsedSeconds" type="number" min="0" max="3600" step="1"></label>
+            <label>TK0-Krümmung <small>µV/V/K²</small><input id="tk0Quadratic" type="text" inputmode="decimal" autocomplete="off" min="-100" max="100" step="0.001"></label>
+            <label>TKE-Krümmung <small>ppm/K²</small><input id="tkeQuadratic" type="text" inputmode="decimal" autocomplete="off" min="-10000" max="10000" step="0.001"></label>
+            <label>Kriechen <small>% FS · asymptotisch</small><input id="creepPercentFS" type="text" inputmode="decimal" autocomplete="off" min="-20" max="20" step="0.001"></label>
+            <label>Zeitkonstante <small>Sekunden</small><input id="creepTauS" type="text" inputmode="decimal" autocomplete="off" min="0.1" max="3600" step="1"></label>
+            <label>Verstrichene Zeit <small>Sekunden</small><input id="elapsedSeconds" type="text" inputmode="decimal" autocomplete="off" min="0" max="3600" step="1"></label>
           </div>
         </details>
         <div class="line"></div>
-        <div class="section-head"><div><h2>Temperaturzweig</h2><small>Optionaler PTC-Parallelzweig</small></div><label class="switch"><input type="checkbox" id="ptcEnabled"><span></span></label></div>
-        <div class="advanced"><label>PTC bei 25 °C <small>Ω</small><input id="ptcR25" type="number" step="100" min="100"></label><label>PTC-Koeffizient <small>ppm/K</small><input id="ptcPpm" type="number" step="50"></label></div>
-        <p class="hint" id="ptcHint">PTC-Zweig getrennt. Die Brücke allein bestimmt den Strom.</p>
+        <div class="section-head"><div><h2>Temperaturwiderstand</h2><small>Optionaler zusätzlicher Widerstandszweig · PTC oder NTC</small></div>
+        <label class="thermistor-mode-label" for="tempResistorMode"><span>Typ</span><select id="tempResistorMode"><option value="off">Deaktiviert</option><option value="ptc">PTC</option><option value="ntc">NTC</option></select></label></div>
+        <div id="ptcParameters" class="advanced thermistor-parameters" hidden>
+          <label>PTC bei 25 °C <small>R25 in Ω</small><input id="ptcR25" type="text" inputmode="decimal" autocomplete="off"></label>
+          <label>PTC-Koeffizient <small>ppm/K · lineares Modell</small><input id="ptcPpm" type="text" inputmode="decimal" autocomplete="off"></label>
+        </div>
+        <div id="ntcParameters" class="advanced thermistor-parameters" hidden>
+          <label>NTC bei 25 °C <small>R25 in Ω</small><input id="ntcR25" type="text" inputmode="decimal" autocomplete="off"></label>
+          <label>NTC B-Wert <small>Beta in K</small><input id="ntcBeta" type="text" inputmode="decimal" autocomplete="off"></label>
+        </div>
+        <p class="hint" id="ptcHint">Temperaturzweig deaktiviert. Die Brücke allein bestimmt den Strom.</p>
+        <p class="hint">PTC und NTC sind derzeit mathematische Modelle. Der reale Temperaturzweig und die AD5270-Ansteuerung sind noch nicht validiert.</p>
         <div class="line"></div>
         <div class="section-head"><div><h2>Hardware</h2><small>Befehl nur bei BLE-Verbindung</small></div><span id="hardwareTag" class="tag">DEMO</span></div>
         <p class="hint">Die Firmware speichert momentan nur die 12 Basisparameter im RAM. Gain, Hysterese, TK-Krümmung, Kriechen, Grenzwerte und Prüfpunkte sind <strong>nur Simulation</strong>, nicht Teil des aktuellen BLE-Protokolls. Keine reale Analogausgabe.</p>
@@ -159,7 +166,7 @@
             <g fill="currentColor" font-size="12" text-anchor="middle"><text x="160" y="16">EXC+</text><text x="160" y="268">EXC−</text><text x="23" y="132">SIG+</text><text x="297" y="132">SIG−</text><text x="90" y="83">R1</text><text x="230" y="83">R3</text><text x="90" y="176">R2</text><text x="230" y="176">R4</text></g>
             <g fill="#50dfc1" font-size="11" text-anchor="middle"><text id="r1" x="90" y="102">10000 Ω</text><text id="r3" x="230" y="102">10000 Ω</text><text id="r2" x="90" y="195">10000 Ω</text><text id="r4" x="230" y="195">10000 Ω</text></g>
           </svg>
-          <div class="bridge-stats"><div><small>Grundbrücke</small><strong>4 × 10 kΩ</strong></div><div><small>Eingangswiderstand</small><strong id="rin">10,000 kΩ</strong></div><div><small>Gleichtakt</small><strong id="vcm">2.500 V</strong></div><div><small>PTC-Zweig</small><strong id="ptcState">Aus</strong></div><p>Die angezeigten Widerstände sind eine mathematische Ersatzbrücke, nicht die tatsächlichen AD5270-Codes.</p></div>
+          <div class="bridge-stats"><div><small>Grundbrücke</small><strong>4 × 10 kΩ</strong></div><div><small>Eingangswiderstand</small><strong id="rin">10,000 kΩ</strong></div><div><small>Gleichtakt</small><strong id="vcm">2.500 V</strong></div><div><small>Temperaturzweig</small><strong id="ptcState">Aus</strong></div><p>Die angezeigten Widerstände sind eine mathematische Ersatzbrücke, nicht die tatsächlichen AD5270-Codes.</p></div>
         </div>
       </section>
       <section class="panel specifications">
