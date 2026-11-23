@@ -67,7 +67,7 @@ function renderExpectedRows(){
   tr.dataset.key=def.key;
   makeTableCell(tr,def.label);
   const value=document.createElement('span');value.className='value current';
-  const measured=makeTableCell(tr,value);const unit=document.createElement('span');unit.className='unit';unit.textContent=def.unit==='pressure'?state.pressureUnit:def.unit;measured.append(unit);
+  const measured=makeTableCell(tr,value);const unit=document.createElement('span');unit.className='unit';unit.textContent=def.unit==='pressure'?(state.pressureUnit==='percent'?'%':state.pressureUnit):def.unit;measured.append(unit);
   for(const bound of ['min','max']){
    const input=makeNumberField(expectedLimits[def.key]?.[bound]??null,bound);
    input.dataset.key=def.key;
@@ -105,7 +105,7 @@ function makeDirectionSelect(value){
 function renderPointRows(){
  const body=document.getElementById('testPointsBody');
  if(!body)return;body.replaceChildren();
- document.getElementById('testPressureHeading').textContent='Druck ('+state.pressureUnit+')';
+ document.getElementById('testPressureHeading').textContent='Druck ('+(state.pressureUnit==='percent'?'%':state.pressureUnit)+')';
  for(const point of testPoints){
   const tr=document.createElement('tr');tr.dataset.id=String(point.id);
   const pressure=makeNumberField(Number(point.pressureValue.toPrecision(12)),'pressureValue','Druck');
