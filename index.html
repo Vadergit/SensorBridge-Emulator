@@ -16,6 +16,8 @@
 <script defer src="./workspace.js"></script>
 <script defer src="./app.js"></script>
 <script defer src="./firmware-ui.js"></script>
+<script defer src="./wiki-data.js"></script>
+<script defer src="./wiki-ui.js"></script>
 </head><body>
 <div class="app-shell">
 <aside class="sidebar" id="sidebar">
@@ -32,10 +34,11 @@
     <button type="button" class="nav-button" data-view="profiles"><span>▤</span>Profile</button>
     <button type="button" class="nav-button" data-view="firmware"><span>↟</span>Firmwareupdate</button>
     <button type="button" class="nav-button" data-view="settings"><span>⚙</span>Einstellungen</button>
+    <button type="button" class="nav-button" data-view="wiki"><span>?</span>Wiki & Hilfe</button>
   </nav>
   <div class="sidebar-bottom">
     <div class="sidebar-info"><span class="soft-dot"></span><span id="sidebarDevice">Offline · Demo-Modus</span></div>
-    <small>v0.5 · Laborsoftware</small>
+    <small>v0.7 · Laborsoftware</small>
     <a href="https://github.com/Vadergit/SensorBridge-Emulator" target="_blank" rel="noopener noreferrer">GitHub-Projekt ↗</a>
   </div>
 </aside>
@@ -48,16 +51,16 @@
   <main class="content">
     <div id="notice" role="status" aria-live="polite" class="notice">Demo-Modus: Alle Ausgangssignale sind berechnet. Die analoge Hardware ist noch nicht freigegeben.</div>
     <section class="view active-view" id="view-dashboard" data-page-title="Übersicht">
-      <div class="view-head"><div><p class="eyebrow">LIVE-ÜBERSICHT</p><h2>SensorBridge Emulator</h2><p class="hint">Dein aktuelles Sensorprofil, Druck, Temperatur und berechnetes Brückensignal auf einen Blick.</p></div><button data-goto="emulator" class="primary">Emulation öffnen</button></div>
+      <div class="view-head"><div><p class="eyebrow">LIVE-ÜBERSICHT</p><h2>SensorBridge Emulator</h2><p class="hint">Dein aktuelles Sensorprofil, Druck in % FS, Temperatur und berechnetes Brückensignal auf einen Blick.</p></div><button data-goto="emulator" class="primary">Emulation öffnen</button></div>
       <section class="metrics">
       <article class="metric"><small>DIFFERENZSIGNAL</small><strong id="outMv">0.00000 <em>mV</em></strong><span id="outMvV">0.0000 mV/V</span></article>
       <article class="metric"><small>VOLLHUB</small><strong id="fullMv">10.000 <em>mV</em></strong><span id="spanText">2.000 mV/V</span></article>
       <article class="metric"><small>BRÜCKENSPEISUNG</small><strong id="excMetric">5.000 <em>V</em></strong><span id="bridgeText">10 kΩ nominal</span></article>
-      <article class="metric"><small>DRUCK / TEMPERATUR</small><strong id="conditionMetric">50.0 <em>%</em></strong><span id="physicalPressureMetric">5.000 bar</span> · <span id="temperatureMetric">25.0 °C</span></article>
+      <article class="metric"><small>DRUCK / TEMPERATUR</small><strong id="conditionMetric">50.0 <em>%</em></strong><span id="physicalPressureMetric">50.000 %</span> · <span id="temperatureMetric">25.0 °C</span></article>
     </section>
       <div class="dashboard-grid">
         <article class="panel"><div class="section-head"><div><h2>Aktuelle Simulation</h2><small>Auf Basis der Sensordefinition</small></div><span class="tag">LIVE DEMO</span></div>
-          <div class="overview-values"><div><small>Sensorprofil</small><strong id="overviewName">Neues Sensorprofil</strong></div><div><small>Druck</small><strong id="overviewPressure">5 bar</strong></div><div><small>Temperatur</small><strong id="overviewTemperature">25 °C</strong></div><div><small>Signal</small><strong id="overviewSignal">5 mV</strong></div></div>
+          <div class="overview-values"><div><small>Sensorprofil</small><strong id="overviewName">Neues Sensorprofil</strong></div><div><small>Druck</small><strong id="overviewPressure">50 %</strong></div><div><small>Temperatur</small><strong id="overviewTemperature">25 °C</strong></div><div><small>Signal</small><strong id="overviewSignal">5 mV</strong></div></div>
           <p class="hint">Physikalische Druck- und Temperaturwerte sind nur Sollwerte der mathematischen Simulation.</p>
         </article>
         <article class="panel"><div class="section-head"><div><h2>Arbeitsablauf</h2><small>In vier Schritten zur Sensorbrückensimulation</small></div></div>
@@ -71,19 +74,19 @@
       <section class="panel controls">
         <div class="section-head"><div><h2>Sensorparameter</h2><small>Werte ändern und sofort simulieren</small></div><span class="tag">SENSORDATEN</span></div>
         <div class="physical-setpoints">
-          <div class="section-head"><div><h2>Physikalischer Messbereich</h2><small>Druck in echten Einheiten; der Hub in % wird automatisch berechnet</small></div><span class="tag">MESSBEREICH</span></div>
+          <div class="section-head"><div><h2>Druckmessbereich</h2><small>Standard 0–100 % FS; optional mit physikalischem Druckmessbereich</small></div><span class="tag">MESSBEREICH</span></div>
           <div class="physical-range-grid">
-            <label class="uniform-control"><span>Druck von</span><small id="pressureMinUnit">bar</small><input id="pressureMin" type="text" inputmode="decimal" autocomplete="off" value="0"></label>
-            <label class="uniform-control"><span>Druck bis</span><small id="pressureMaxUnit">bar</small><input id="pressureMax" type="text" inputmode="decimal" autocomplete="off" value="10"></label>
-            <label class="uniform-control"><span>Druckeinheit</span><small>Einheit des Messbereichs</small><select id="pressureUnit"><option value="bar">bar</option><option value="mbar">mbar</option><option value="kPa">kPa</option><option value="MPa">MPa</option><option value="psi">psi</option><option value="Pa">Pa</option></select></label>
+            <label class="uniform-control"><span>Druck von</span><small id="pressureMinUnit">%</small><input id="pressureMin" type="text" inputmode="decimal" autocomplete="off" value="0"></label>
+            <label class="uniform-control"><span>Druck bis</span><small id="pressureMaxUnit">%</small><input id="pressureMax" type="text" inputmode="decimal" autocomplete="off" value="100"></label>
+            <label class="uniform-control"><span>Druckeinheit</span><small>Einheit des Messbereichs</small><select id="pressureUnit"><option value="percent">% FS (Standard)</option><option value="bar">bar</option><option value="mbar">mbar</option><option value="kPa">kPa</option><option value="MPa">MPa</option><option value="psi">psi</option><option value="Pa">Pa</option></select></label>
             <label class="uniform-control"><span>Bezug</span><small>Referenz des Drucks</small><select id="pressureReference"><option value="gauge">Relativdruck</option><option value="absolute">Absolutdruck</option></select></label>
             <label class="uniform-control"><span>Temperatur von</span><small>°C</small><input id="temperatureMin" type="text" inputmode="decimal" autocomplete="off" value="-40"></label>
             <label class="uniform-control"><span>Temperatur bis</span><small>°C</small><input id="temperatureMax" type="text" inputmode="decimal" autocomplete="off" value="125"></label>
           </div>
           <div class="physical-current">
-            <div class="field-head"><label for="pressureActual">Aktuell anliegender Druck</label><div><input id="pressureActualNumber" type="text" inputmode="decimal" autocomplete="off" value="5"><span id="pressureActualUnit">bar</span></div></div>
-            <input id="pressureActual" type="range" min="0" max="10" value="5" step="0.001">
-            <p class="hint" id="pressureConversion">5 bar = 50 % des Messbereichs · 25 °C</p>
+            <div class="field-head"><label for="pressureActual">Aktuell anliegender Druck</label><div><input id="pressureActualNumber" type="text" inputmode="decimal" autocomplete="off" value="50"><span id="pressureActualUnit">%</span></div></div>
+            <input id="pressureActual" type="range" min="0" max="100" value="50" step="0.001">
+            <p class="hint" id="pressureConversion">50 % FS · 25 °C</p>
           </div>
         </div>
         <div class="line"></div>
@@ -142,9 +145,9 @@
       <div class="view-head"><div><p class="eyebrow">SETPOINT CONTROL</p><h2>Emulation</h2><p class="hint">Druck als %, bar, mbar, psi oder weitere Einheit vorgeben und Temperatur direkt ändern.</p></div><span class="tag">SIMULATION</span></div>
       <div class="emulator-grid">
         <article class="panel"><div class="section-head"><div><h2>Druck und Temperatur einstellen</h2><small>Direkte Eingabe oder Schieberegler</small></div></div>
-          <div class="mode-row"><label for="setpointMode">Druckvorgabe</label><select id="setpointMode"><option value="physical">Physikalischer Druck</option><option value="percent">Prozent [% FS]</option></select><label for="setpointUnit">Einheit</label><select id="setpointUnit"><option value="bar">bar</option><option value="mbar">mbar</option><option value="psi">psi</option><option value="kPa">kPa</option><option value="MPa">MPa</option><option value="Pa">Pa</option></select></div>
+          <div class="mode-row"><label for="setpointMode">Druckvorgabe</label><select id="setpointMode"><option value="percent">Prozent [% FS] (Standard)</option><option value="physical">Physikalischer Druck</option></select><label for="setpointUnit">Einheit</label><select id="setpointUnit"><option value="percent">% FS</option><option value="bar">bar</option><option value="mbar">mbar</option><option value="psi">psi</option><option value="kPa">kPa</option><option value="MPa">MPa</option><option value="Pa">Pa</option></select></div>
           <div id="emulatorSetpoints"></div>
-          <div class="emulator-readback"><div><small>Normierter Druck</small><strong id="emulatorPercent">50.00 %</strong></div><div><small>Druckwert</small><strong id="emulatorPhysical">5.000 bar</strong></div><div><small>Brückensignal</small><strong id="emulatorSignal">5.000 mV</strong></div></div>
+          <div class="emulator-readback"><div><small>Normierter Druck</small><strong id="emulatorPercent">50.00 %</strong></div><div><small>Druckwert</small><strong id="emulatorPhysical">50 %</strong></div><div><small>Brückensignal</small><strong id="emulatorSignal">5.000 mV</strong></div></div>
         </article>
         <article class="panel"><h2>Gerätekommunikation</h2><p class="hint">Web Bluetooth über ESP32-C3. Die momentan vorhandene Firmware speichert Sollwerte nur im RAM und aktiviert keine Analogausgabe.</p><div id="emulatorHardware"></div>
           <div class="info-card"><strong>Hardwarestatus</strong><p>Berechnete Werte sind keine bestätigten realen Ausgangsspannungen.</p></div>
@@ -192,7 +195,7 @@
       </div>
       <div class="table-scroll">
         <table class="data-table" aria-label="Konfigurierbare Temperatur- und Druckprüfpunkte">
-          <thead><tr><th id="testPressureHeading">Druck (bar)</th><th>Hub (%)</th><th>Temp. (°C)</th><th>Richtung</th><th>Signal berechnet (mV)</th><th>Min. erwartet (mV)</th><th>Max. erwartet (mV)</th><th>Status</th><th></th></tr></thead>
+          <thead><tr><th id="testPressureHeading">Druck (%)</th><th>Hub (%)</th><th>Temp. (°C)</th><th>Richtung</th><th>Signal berechnet (mV)</th><th>Min. erwartet (mV)</th><th>Max. erwartet (mV)</th><th>Status</th><th></th></tr></thead>
           <tbody id="testPointsBody"></tbody>
         </table>
       </div>
@@ -221,6 +224,22 @@
       <article class="panel"><h2>Verbindung und Daten</h2><p class="hint">Für Web Bluetooth und Web Serial wird Chrome oder Edge benötigt. Beim USB-Firmwareupdate wird eine separate Browser-Verbindung geöffnet; trenne vorher andere serielle Anwendungen.</p><button id="clearLocalProfilesBtn" class="secondary">Lokale Profile löschen</button><p class="hint">Diese Aktion löscht nur die auf diesem Gerät gespeicherten Sensorprofile.</p></article>
       <article class="panel"><h2>Dokumentation</h2><p><a href="https://github.com/Vadergit/SensorBridge-Emulator/blob/main/docs/SENSOR_PROFILES.md" target="_blank" rel="noopener noreferrer">Sensorprofile und Berechnungen ↗</a></p><p><a href="https://github.com/Vadergit/SensorBridge-Emulator/blob/main/docs/PROTOCOL.md" target="_blank" rel="noopener noreferrer">BLE-Protokoll ↗</a></p></article>
     </section>
+    <section class="view" id="view-wiki" data-page-title="Wiki & Hilfe">
+      <div class="view-head"><div><p class="eyebrow">NACHSCHLAGEWERK</p><h2>Wiki & Fachbegriffe</h2><p class="hint">Abkürzungen, Definitionen, Formeln und Beispiele zum Brückensimulator.</p></div></div>
+      <article class="panel wiki-panel">
+        <label class="wiki-search-label" for="wikiSearch">Im Wiki suchen</label>
+        <input type="search" id="wikiSearch" placeholder="z. B. TK0, TKE, R25, Hysterese, mV/V …" autocomplete="off">
+        <div id="wikiCategories" class="wiki-categories" aria-label="Wiki-Kategorien"></div>
+        <p class="hint" id="wikiCount" role="status"></p>
+        <div id="wikiArticles" class="wiki-articles"></div>
+      </article>
+    </section>
+    <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpDialogTitle">
+      <div class="help-dialog-head"><div><p class="eyebrow">PARAMETERHILFE</p><h2 id="helpDialogTitle"></h2></div><button type="button" id="helpDialogClose" aria-label="Hilfe schliessen">✕</button></div>
+      <p id="helpDialogDescription"></p>
+      <div id="helpDialogExample" class="help-dialog-example"></div>
+      <div class="help-dialog-footer"><button type="button" class="secondary" id="helpDialogWiki">Im Wiki öffnen</button><button type="button" class="primary" id="helpDialogDone">Schliessen</button></div>
+    </dialog>
     <footer><span>SensorBridge Emulator · Entwicklungsversion</span><span>Analoger Ausgang noch nicht validiert</span><a href="https://github.com/Vadergit/SensorBridge-Emulator" target="_blank" rel="noopener noreferrer">GitHub ↗</a></footer>
   </main>
 </div></div></body></html>
