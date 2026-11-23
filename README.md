@@ -10,32 +10,23 @@ A development project for simulating an untrimmed resistive pressure-sensor brid
 
 After enabling GitHub Pages (Settings → Pages → Deploy from branch → main / root), the application can run on the URL above via HTTPS. You can try all parameters immediately with **Demo mode**, without hardware.
 
-## Live-Hubauflösung in % FS
+## Einstellauflösung nach Sensorparametern (v0.9)
 
-Unter **Emulation** direkt neben dem Druck-Setpoint werden jetzt vier Werte angezeigt:
+Die Emulation zeigt jetzt direkt unter Druck- und Temperaturvorgabe eine **sensorbezogene Schritt-Tabelle**, statt den AD5270-Kanälen die vermeintlich erreichbaren Druckwerte zuzuordnen. Alle Einträge aktualisieren sich, sobald Hub, Temperatur, Offset, Gain oder Spanne geändert werden.
 
-- **Gewünschter Hub:** der eingestellte Sollwert in Prozent des vollen Sensorhubs.
-- **Rastermodell: nächster Hub:** theoretisch gerundeter Wert aus einem *fiktiv über 0–100 % wiederholten* Feinschritt.
-- **Abweichung:** Differenz zwischen dem idealisierten Rasterwert und dem gewünschten Hub in **Prozentpunkten**.
-- **Lokaler Fein-Schritt:** idealisierte %FS-Änderung eines einzelnen Fein-AD5270 bei Code 512→513, umgerechnet mit der **aktuellen** Kennliniensteigung bei Druck, Temperatur, Gain und Fehlerparametern.
+| Stellgrösse | Aktueller Sollwert | Angegebener Regler-/Formularschritt | Änderung des Signals am Sollpunkt (5 V, 2 mV/V, 50 % FS, 25 °C, Gain 1) |
+|---|---:|---:|---:|
+| Hub | 50 % FS | 0.001 % FS | 0.1 µV |
+| Temperatur | 25 °C | 0.001 °C | 0 µV bei TK0 = TKE = 0 |
+| Nullpunkt | 0 mV | 0.001 mV | 1 µV |
+| Brücken-Gain | 1 × | 0.001 × | 5 µV bei 50 % / 10 µV Vollhub |
+| Signalspanne | 2 mV/V | 0.001 mV/V | 2.5 µV bei 50 % / 5 µV Vollhub |
 
-Die Grob-/Mittel-/Feinschritte werden darunter auch in **% FS pro Code** dargestellt, einschliesslich des theoretisch beeinflussten Hubbereichs je Einzelkanal.
+Der Regler- oder Formularschritt ist die in der Oberfläche deklarierte Schrittgrösse. **Zahlenfelder können mit weiteren Dezimalstellen bedient werden**, was aber keine zusätzliche reale Hardwareauflösung bedeutet. Das Programm berechnet auch die Änderung des Vollhubs, die bei Gain- und Spannenverstellung eintritt.
 
-**Wichtig:** Dieser «nächste Hub» ist **keine echte Hardwareausgabe**. Das Rastermodell setzt voraus, dass Grob/Mittel beliebig exakt zum Feinraster positionieren können und der lokale Feinschritt beliebig oft wiederholt werden kann. Das ist physikalisch nicht nachgewiesen und für einen einzelnen AD5270 nicht möglich. Der tatsächliche Ist-Hub, die Gesamtzahl erreichbarer 0–100-%-Stellwerte und die reale maximale Toleranz sind derzeit **unbekannt**. Erst nach Schaltungsvalidierung und analoger Rückmessung darf die Anzeige einen real gemessenen Istwert zeigen.
+Unterhalb der Tabelle werden nur noch zwei **klar als theoretisch gekennzeichnete Referenzwerte** gezeigt: eine optimistische lokale Hubschrittweite aus der vereinfachten AD5270-Spannungsrechnung (umgerechnet in % FS) und ein lokaler PTC-/NTC-Temperaturschritt aus dem angenommenen Widerstandsmodell, falls bei dieser Temperatur überhaupt darstellbar. Die detaillierte Einzelstufenrechnung ist im Expertenbereich unter **Berechnungen & Auflösung** eingeklappt.
 
-Beispiel für 5 V, 2 mV/V Nennspanne, 10-kΩ-Brückenarme, Gain 1, 25 °C und fehlerfreie Idealkennlinie:
-
-| Grösse | Rechnerisches Beispiel |
-|---|---:|
-| Gesamthub | 10 mV = 100 % FS |
-| Lokaler Feinschritt (ein AD5270, Code 512→513) | ca. 0.058066 µV |
-| Schritt in % FS | ca. 0.00058066 % FS |
-| Halber lokaler Schritt | ca. ±0.00029033 Prozentpunkte |
-| Sollhub 50.000000 % FS | fiktiv gerundet ca. 50.000077 % FS |
-| Abweichung im Rundungsmodell | ca. +0.000077 Prozentpunkte |
-| Tatsächlicher Ist-Hub | **nicht verfügbar** |
-
-Die Berechnung berücksichtigt, dass sich die lokale Signalsteigung durch die Temperatureinstellung und Kennlinienparameter ändern kann.
+**Die frühere Anzeige eines fiktiv auf ein Feinraster gerundeten «nächsten Hubs» und einer angeblich erreichten Genauigkeit wurde entfernt.** Ohne vermessene kombinierte Analogschaltung kann die App keine tatsächlich erreichbare minimale Schrittweite für Hub, Nullpunkt, Gain oder Temperatur belegen. Ein gemessener Istwert muss später über die echte Hardware-Rückmessung kommen.
 
 ## Wiki, Formeln und Auflösungsrechner (v0.8)
 
