@@ -10,6 +10,22 @@ A development project for simulating an untrimmed resistive pressure-sensor brid
 
 After enabling GitHub Pages (Settings → Pages → Deploy from branch → main / root), the application can run on the URL above via HTTPS. You can try all parameters immediately with **Demo mode**, without hardware.
 
+## Web Control Center v0.4
+
+The web UI has been reorganised into **seven workspaces** with a persistent left navigation, inspired by the ELMOS E703.11 calibration app. It supports **light, dark and system theme**.
+
+- **Übersicht**: key signal, pressure and temperature metrics.
+- **Sensor definieren**: physical pressure and temperature ranges, nominal bridge span, gain and temperature/hysteresis settings.
+- **Emulation**: select real pressure (bar, mbar, psi, kPa, MPa, Pa) or % of full scale and set temperature in °C.
+- **Kennlinien & Eckpunkte**: computed up/down curves, expected ranges and physical pressure-temperature points.
+- **Profile**: import/export JSON and save/load browser-local sensor profiles.
+- **Firmwareupdate**: USB-C **ESP Web Tools** installer for ESP32-C3 SuperMini, matching the ELMOS configurator's firmware update workflow. The button activates **only when a compiled SensorBridge firmware image exists**.
+- **Einstellungen**: switch theme and manage local data.
+
+See [Control Center user guide](docs/UI_GUIDE.md).
+
+> The application and firmware are still early prototypes. Current ESP32 firmware is BLE configuration-only and does not drive an analogue Wheatstone bridge. No real pressure is generated.
+
 ## Sensor data sheet and real operating points
 
 The web UI includes a **physical pressure setpoint** and a configurable pressure range. Enter for example `0–10 bar`, `6.5 bar`, and `75 °C`; the simulation maps this to `65 % FS` and calculates the bridge signal including enabled TK0/TKE, hysteresis and gain. Supported pressure units: **bar, mbar, kPa, MPa, psi and Pa**. It also supports a configurable operating temperature range (−40 to 125 °C).
