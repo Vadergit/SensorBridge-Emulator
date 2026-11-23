@@ -79,3 +79,23 @@ Profilformat ab dieser Version: `sensorbridge-profile/v3`. Ältere v1-/v2-Profil
 Die Weboberfläche zeigt den physikalischen Druck, während das vorläufige ESP32-C3-Protokoll weiterhin **den normierten Druck in % FS** und **die Temperatur in °C** verwendet. Der Testaufbau speichert aktuell nur die 12 Basisparameter; eine echte analoge Brückenansteuerung und ein bestätigter Messwert sind weiterhin nicht vorhanden.
 
 **Wichtig:** Die Simulation stellt keinen Druck am Anschluss her. Das Gerät soll später ein elektrisches Brückensignal wie bei diesem Druck erzeugen. Die reale Signalgenauigkeit und der mögliche Einstellbereich der AD5270 müssen erst experimentell überprüft werden.
+
+## PTC- oder NTC-Zweig (v0.5)
+
+Unter **Sensor definieren → Temperaturwiderstand** stehen **Deaktiviert**, **PTC** und **NTC** zur Auswahl. Der Widerstand ist im Modell ein zusätzlicher Parallelzweig zur Brückenspeisung und verändert den errechneten Speisestrom (nicht die bisher separat definierte Brückenkennlinie). Es handelt sich noch nicht um eine validierte elektrische Hardwarefunktion.
+
+**PTC (linear):**
+
+```
+R(T) = R25 · [1 + TK_PTC · (T − 25 °C) / 1'000'000]
+```
+
+**NTC (Beta-Modell):**
+
+```
+R(T) = R25 · exp[B · (1/(T+273.15) − 1/298.15)]
+```
+
+Hier ist R25 der Widerstand bei 25 °C in Ω und B der Beta-Wert in Kelvin. In der Weboberfläche lassen sich die Parameter mit **Komma oder Punkt** eingeben, beispielsweise `10'000` ohne Tausendertrennzeichen als `10000`, oder `3,5` für einen Dezimalwert. Der mathematische NTC-Zweig ist **noch nicht Bestandteil der BLE-Gerätebefehle**; beim NTC-Modus wird die alte PTC-Freigabe nicht gesetzt.
+
+Neue Profile werden als `sensorbridge-profile/v4` exportiert. Importierte v3-Profile mit dem alten Flag `ptcEnabled` werden auf Aus/PTC abgebildet.
