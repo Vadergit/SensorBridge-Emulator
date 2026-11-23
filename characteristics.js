@@ -7,7 +7,9 @@
 const extraDefaults=Object.freeze({
   bridgeGain:1, bridgeResistance:10000, direction:'up',
   hysteresis:0, tk0Quadratic:0, tkeQuadratic:0,
-  creepPercentFS:0, creepTauS:60, elapsedSeconds:0
+  creepPercentFS:0, creepTauS:60, elapsedSeconds:0,
+  pressureMin:0, pressureMax:10, pressureValue:5, pressureUnit:'bar', pressureReference:'gauge',
+  temperatureMin:-40, temperatureMax:125
 });
 const extraRanges=Object.freeze({
   bridgeGain:[0.01,10], bridgeResistance:[100,1000000],
@@ -29,8 +31,13 @@ const expectedDefinitions=Object.freeze([
   {key:'creepPercentFS',label:'Kriechen',unit:'% FS',read:s=>s.creepPercentFS},
   {key:'drift',label:'Offsetdrift',unit:'µV',read:s=>s.drift},
   {key:'bridgeResistance',label:'Brückeneingangswiderstand',unit:'Ω',read:s=>s.bridgeResistance},
-  {key:'pressure',label:'Druck-Prüfbereich',unit:'%',read:s=>s.pressure},
-  {key:'temperature',label:'Temperatur-Prüfbereich',unit:'°C',read:s=>s.temperature}
+  {key:'pressureValue',label:'Aktueller Druck',unit:'pressure',read:s=>s.pressureValue},
+  {key:'pressureMin',label:'Druckmessbereich Beginn',unit:'pressure',read:s=>s.pressureMin},
+  {key:'pressureMax',label:'Druckmessbereich Ende',unit:'pressure',read:s=>s.pressureMax},
+  {key:'pressure',label:'Aktueller Hub',unit:'%',read:s=>s.pressure},
+  {key:'temperature',label:'Aktuelle Temperatur',unit:'°C',read:s=>s.temperature},
+  {key:'temperatureMin',label:'Temperaturbereich Beginn',unit:'°C',read:s=>s.temperatureMin},
+  {key:'temperatureMax',label:'Temperaturbereich Ende',unit:'°C',read:s=>s.temperatureMax}
 ]);
 function calculate(s,p=s.pressure,t=s.temperature,direction=s.direction||'up'){
   const frac=p/100,dT=t-25,volts=s.excitation;
