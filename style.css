@@ -33,3 +33,19 @@ footer nav a:hover,footer nav a:focus-visible{text-decoration:underline}
 .compact-actions{margin:0}
 .compact-actions button{flex:initial}
 @media(max-width:650px){.spec-top{align-items:start}.profile-label{display:flex;align-items:start;flex-direction:column}.profile-label input{width:min(100%,350px)}.specifications{padding:14px}.compact-actions{flex-wrap:wrap}}
+
+/* Configurable physical pressure / temperature range */
+.physical-setpoints{border:1px solid #345067;border-radius:12px;background:linear-gradient(145deg,#152c37,#152333);padding:16px;margin:18px 0 8px}
+.physical-setpoints .section-head{margin-bottom:14px}
+.physical-range-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.physical-range-grid label{font-size:12px;font-weight:600;display:flex;flex-direction:column;gap:5px;min-width:0}
+.physical-range-grid small{font-size:10px;color:var(--muted);font-weight:400;display:inline}
+.physical-range-grid input,.physical-range-grid select{background:#1c3140;color:var(--text);border:1px solid #496075;border-radius:8px;padding:8px;width:100%;min-width:0}
+.physical-current{margin-top:18px;padding-top:12px;border-top:1px solid #345064}
+.physical-current .field-head{justify-content:space-between;gap:10px}
+.physical-current .field-head label{font-weight:700}
+.physical-current .field-head input{background:#1b2b3b;color:var(--text);border:1px solid #456277;padding:6px 9px;border-radius:7px;width:120px;text-align:right}
+.physical-current .field-head span{color:var(--teal)}
+.physical-current input[type=range]{width:100%;accent-color:var(--teal);margin-top:8px}
+.physical-current .hint{margin:8px 0 0}
+@media(max-width:680px){.physical-range-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.physical-setpoints{padding:12px}}
