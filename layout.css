@@ -1,0 +1,369 @@
+/*
+ * SensorBridge layout polish, v0.5.
+ * Consistent heights, label rows and input widths across light/dark themes.
+ * Overrides the earlier structural stylesheet without changing functionality.
+ */
+:root {
+  --control-height: 42px;
+  --control-radius: 8px;
+  --form-gap: 14px;
+}
+[hidden] { display: none !important; }
+.view { min-width: 0; }
+.content { max-width: 1660px; padding-inline: clamp(16px, 2.2vw, 36px); }
+.view-head { max-width: 1200px; margin: 0 auto 20px; }
+#view-dashboard .view-head { max-width: none; }
+#view-sensor .controls,
+#view-emulator .emulator-grid,
+#view-characteristics .chart-panel,
+#view-characteristics .specifications,
+#view-profiles > .panel,
+#view-settings > .panel,
+#view-firmware > .panel {
+  width: min(100%, 1200px);
+  max-width: 1200px;
+  margin-inline: auto;
+}
+#view-sensor .controls {
+  padding: clamp(18px, 2.2vw, 30px);
+}
+.panel {
+  box-shadow: 0 1px 2px rgba(14, 43, 68, .045);
+}
+:root[data-theme="dark"] .panel {
+  box-shadow: none;
+}
+#view-sensor .controls > .section-head:first-child {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+#view-sensor .controls > .section-head:first-child h2 {
+  font-size: 20px;
+}
+.physical-setpoints {
+  margin: 18px 0 20px;
+  padding: clamp(16px, 2vw, 23px);
+}
+.physical-setpoints .section-head {
+  align-items: flex-start;
+}
+.physical-setpoints .section-head h2 {
+  font-size: 17px;
+}
+.physical-range-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px 16px;
+  margin-top: 18px;
+}
+.physical-range-grid .uniform-control {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0,1fr);
+  grid-template-rows: 20px 16px var(--control-height);
+  gap: 4px;
+  align-items: stretch;
+}
+.physical-range-grid .uniform-control > span {
+  font-weight: 650;
+  font-size: 12px;
+  line-height: 20px;
+}
+.physical-range-grid .uniform-control > small {
+  font-size: 11px;
+  line-height: 16px;
+  min-height: 16px;
+}
+.physical-range-grid .uniform-control > input,
+.physical-range-grid .uniform-control > select {
+  width: 100%;
+  height: var(--control-height);
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: var(--control-radius);
+}
+input[inputmode="decimal"] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+input[inputmode="decimal"]:focus,
+select:focus {
+  border-color: var(--blue);
+}
+#parameterFields {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 15px;
+  margin: 18px 0;
+}
+#parameterFields > .field {
+  min-width: 0;
+  margin: 0;
+  padding: 15px 16px 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--subtle);
+}
+#parameterFields > .field[data-field="offset"] {
+  grid-column: 1 / -1;
+}
+#parameterFields > .field .field-head {
+  min-height: 43px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(130px, 175px);
+  column-gap: 12px;
+  align-items: center;
+  margin: 0 0 12px;
+}
+#parameterFields > .field .field-head label {
+  display: block;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+#parameterFields > .field .field-head > div {
+  display: grid;
+  grid-template-columns: minmax(60px, 1fr) auto;
+  gap: 9px;
+  justify-content: end;
+  align-items: center;
+  width: 100%;
+  font-size: 12px;
+}
+#parameterFields > .field .field-head input {
+  min-width: 0;
+  max-width: none;
+  width: 100%;
+  text-align: right;
+  height: var(--control-height);
+}
+#parameterFields > .field .field-head span {
+  min-width: 26px;
+  white-space: nowrap;
+}
+#parameterFields > .field input[type="range"] {
+  margin: 0;
+  height: 20px;
+  display: block;
+}
+#view-sensor .controls > details {
+  margin: 14px 0;
+  padding: 14px 18px 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+#view-sensor .controls > details summary {
+  margin: 0;
+  line-height: 22px;
+}
+.advanced {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  column-gap: 18px;
+  row-gap: 18px;
+}
+.advanced > label {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0,1fr);
+  grid-template-rows: 20px 17px var(--control-height);
+  gap: 4px;
+  align-items: stretch;
+  font-size: 12px;
+  font-weight: 650;
+}
+.advanced > label > small {
+  font-size: 11px;
+  min-height: 17px;
+  line-height: 17px;
+  font-weight: 400;
+}
+.advanced > label > input,
+.advanced > label > select {
+  height: var(--control-height);
+  width: 100%;
+  min-width: 0;
+  padding: 9px 12px;
+  margin: 0;
+  border-radius: var(--control-radius);
+}
+.thermistor-mode-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 650;
+}
+.thermistor-mode-label > select {
+  width: 172px;
+  height: var(--control-height);
+  min-width: 150px;
+  padding: 8px 12px;
+}
+#view-sensor .thermistor-parameters {
+  margin: 20px 0 15px;
+  padding: 18px;
+  border-radius: 10px;
+  background: var(--subtle);
+  border: 1px solid var(--line);
+}
+#view-sensor #ptcHint {
+  margin-top: 13px;
+  line-height: 1.65;
+}
+#view-emulator .emulator-grid {
+  grid-template-columns: minmax(0,1.2fr) minmax(300px,.8fr);
+}
+#emulatorSetpoints > .physical-current {
+  padding: 16px;
+  margin-top: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--subtle);
+}
+#emulatorSetpoints > .field {
+  margin: 15px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--subtle);
+}
+#emulatorSetpoints .field-head {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(150px,180px);
+  gap: 14px;
+  align-items: center;
+}
+#emulatorSetpoints .field-head > div {
+  display: grid;
+  grid-template-columns: minmax(70px, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+#emulatorSetpoints .field-head input {
+  width: 100%;
+  max-width: none;
+  text-align: right;
+  height: var(--control-height);
+}
+#emulatorSetpoints .field-head span {
+  white-space: nowrap;
+}
+#emulatorSetpoints input[type="range"] {
+  width: 100%;
+  margin: 4px 0 0;
+}
+#emulatorSetpoints .quick {
+  justify-content: start;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+#emulatorSetpoints .quick button {
+  flex: 1 1 66px;
+}
+.mode-row select {
+  height: var(--control-height);
+}
+#view-characteristics .chart-panel {
+  padding: clamp(18px, 2.2vw, 28px);
+}
+.bridge-stats {
+  gap: 18px;
+}
+.profile-label {
+  display: flex;
+  flex-wrap: wrap;
+}
+.profile-label input {
+  width: min(100%, 420px);
+  height: var(--control-height);
+}
+.table-scroll {
+  margin-block: 16px;
+}
+.data-table {
+  font-size: 12px;
+}
+.data-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.data-table th,
+.data-table td {
+  padding: 10px 12px;
+  vertical-align: middle;
+}
+.data-table input[type="text"],
+.data-table select {
+  width: 118px;
+  max-width: 100%;
+  min-height: 37px;
+  padding: 7px 10px;
+  font-variant-numeric: tabular-nums;
+}
+.data-table input[type="text"] {
+  text-align: right;
+}
+.spec-top {
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.profile-row {
+  min-width: 0;
+}
+.profile-row .actions {
+  flex-wrap: wrap;
+}
+@media(max-width:1270px) {
+  #view-emulator .emulator-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media(max-width:960px) {
+  .physical-range-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+  #view-sensor .controls,
+  #view-characteristics .specifications {
+    padding: 18px;
+  }
+}
+@media(max-width:680px) {
+  .physical-range-grid,
+  #parameterFields,
+  .advanced {
+    grid-template-columns: minmax(0,1fr);
+  }
+  #parameterFields > .field[data-field="offset"] {
+    grid-column: auto;
+  }
+  #view-sensor .controls > details {
+    padding: 12px;
+  }
+  .thermistor-mode-label {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .thermistor-mode-label > select {
+    width: 100%;
+  }
+  .emulator-readback {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media(max-width:420px) {
+  #parameterFields > .field .field-head,
+  #emulatorSetpoints .field-head {
+    grid-template-columns: minmax(0,1fr);
+    gap: 6px;
+  }
+  #parameterFields > .field .field-head > div {
+    max-width: 190px;
+  }
+  .top-actions {
+    align-items: center;
+  }
+}
