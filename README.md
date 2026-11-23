@@ -10,6 +10,17 @@ A development project for simulating an untrimmed resistive pressure-sensor brid
 
 After enabling GitHub Pages (Settings → Pages → Deploy from branch → main / root), the application can run on the URL above via HTTPS. You can try all parameters immediately with **Demo mode**, without hardware.
 
+## Wiki, Formeln und Auflösungsrechner (v0.8)
+
+- Die Bedienung startet mit **0–100 % FS** als Druckvorgabe. Physikalische Einheiten (bar, mbar, psi usw.) bleiben optional; ohne echten Messbereich gibt es keine eindeutige Umrechnung.
+- Ein kleines, dezentes **?** neben den Parametern öffnet eine Erklärung mit praktischen Beispielen. Unter **Wiki & Hilfe** sind 48 Begriffe durchsuchbar.
+- Unter **Berechnungen & Auflösung** steht die mathematische **Formel links** und die Berechnung mit den gewählten Zahlen **rechts**.
+- Ein zusätzlicher Rechner zeigt Anzahl und Schrittweite der Software-Regler, die **idealen** Schrittweiten je AD5270-Grob-/Mittel-/Feinkanal, das begrenzte PTC-/NTC-Temperatur-Netzwerk und ein frei definierbares Ziel für die Ausgangstoleranz.
+
+**Hardwaregenauigkeit bleibt unbestätigt.** Codeauflösung und idealisierte Einzelzweig-Schritte beweisen keine reale Ausgangsgenauigkeit oder garantierte maximale Toleranz. Die physische Brücke ist noch nicht elektrisch validiert.
+
+Details: [Rechnung und Auflösung](docs/CALCULATIONS_AND_RESOLUTION.md) · [Wiki](docs/WIKI.md).
+
 ## Oberflächen- und Eingabeverbesserungen (v0.5)
 
 Die Formulare wurden in einem konsistenten Raster mit einheitlichen Beschriftungen, Feldhöhen, Einheiten, Abständen und responsiven Tabellen angeordnet. Zusätzlich sind die numerischen Eingabefelder auf **Schweizer Dezimalschreibweise** ausgelegt:
