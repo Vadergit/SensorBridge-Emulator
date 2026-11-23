@@ -151,7 +151,8 @@
      const cols=[
        stage.name,
        stage.localStepPercent==null?'–':fmt(stage.localStepPercent,7)+' % FS',
-       stage.localMinPercent==null?'–':fmt(stage.localMinPercent,7)+' bis '+fmt(stage.localMaxPercent,7)+' % FS'
+       stage.localMinPercent==null?'–':fmt(stage.localMinPercent,7)+' bis '+fmt(stage.localMaxPercent,7)+' % FS',
+       stage.isolatedCoveragePercent==null?'–':fmt(stage.isolatedCoveragePercent,5)+' % FS'
      ];
      for(const value of cols){const td=document.createElement('td');td.textContent=value;tr.append(td);}
      tbody.append(tr);
