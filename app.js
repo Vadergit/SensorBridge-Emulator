@@ -106,7 +106,7 @@ async function send(){
    for(let i=0;i<fields.length;i++){
      // Short one-setting command (~18 bytes), works on conservative BLE MTUs.
      const val=fields[i]==='ptcEnabled'?(state.ptcEnabled?1:0):state[fields[i]];
-     const payload=JSON.stringify({v:1,k:'0123456789ab'[i],x:val});
+     const payload='0123456789ab'[i]+'='+String(val);
      const encoded=new TextEncoder().encode(payload);
      if(encoded.length>20)throw Error('BLE-Wert zu gross ('+fields[i]+')');
      await writeCharacteristic.writeValueWithResponse(encoded);
