@@ -31,6 +31,10 @@ const expectedDefinitions=Object.freeze([
   {key:'creepPercentFS',label:'Kriechen',unit:'% FS',read:s=>s.creepPercentFS},
   {key:'drift',label:'Offsetdrift',unit:'µV',read:s=>s.drift},
   {key:'bridgeResistance',label:'Brückeneingangswiderstand',unit:'Ω',read:s=>s.bridgeResistance},
+  {key:'ptcR25',label:'PTC R25',unit:'Ω',read:s=>s.ptcR25},
+  {key:'ptcPpm',label:'PTC-Koeffizient',unit:'ppm/K',read:s=>s.ptcPpm},
+  {key:'ntcR25',label:'NTC R25',unit:'Ω',read:s=>s.ntcR25},
+  {key:'ntcBeta',label:'NTC Beta',unit:'K',read:s=>s.ntcBeta},
   {key:'pressureValue',label:'Aktueller Druck',unit:'pressure',read:s=>s.pressureValue},
   {key:'pressureMin',label:'Druckmessbereich Beginn',unit:'pressure',read:s=>s.pressureMin},
   {key:'pressureMax',label:'Druckmessbereich Ende',unit:'pressure',read:s=>s.pressureMax},
@@ -56,14 +60,19 @@ function calculate(s,p=s.pressure,t=s.temperature,direction=s.direction||'up'){
   const ratio=out/(volts*1000),dr=arm*ratio;
   // Idealised symmetric equivalent full bridge, not a map of real shunt settings.
   const r1=arm-dr,r2=arm+dr,r3=arm+dr,r4=arm-dr;
+  const elementMode=s.tempResistorMode||((s.ptcEnabled)?'ptc':'off');
   const ptcR=s.ptcR25*(1+s.ptcPpm*dT/1e6);
-  const ptcValid=!s.ptcEnabled||ptcR>0;
-  const totalCurrentMilliAmp=1000*volts/arm+(s.ptcEnabled&&ptcR>0?1000*volts/ptcR:0);
+  // NTC beta equation: R(T) = R25 * exp(B * (1/Tk - 1/298.15)).
+  const kelvin=t+273.15;
+  const ntcR=s.ntcR25*Math.exp(s.ntcBeta*(1/kelvin-1/298.15));
+  const elementR=elementMode==='ptc'?ptcR:elementMode==='ntc'?ntcR:null;
+  const elementValid=elementMode==='off'||(Number.isFinite(elementR)&&elementR>0);
+  const totalCurrentMilliAmp=1000*volts/arm+(elementMode!=='off'&&elementValid?1000*volts/elementR:0);
   return {out,mvPerV:out/volts,spanMilliVolt,effectiveSpan,offsetTempMilliVolt,
     hysteresisMilliVolt,creepMilliVolt,nonlinearityMilliVolt,
-    r1,r2,r3,r4,rin:arm,vcm:volts/2,ptcR,totalCurrentMilliAmp,
+    r1,r2,r3,r4,rin:arm,vcm:volts/2,ptcR,ntcR,elementR,elementMode,elementValid,totalCurrentMilliAmp,
     resistanceValid:Math.abs(ratio)<1&&[r1,r2,r3,r4].every(v=>v>0),
-    ptcValid,spanValid:spanFactor>0};
+    ptcValid:elementValid,spanValid:spanFactor>0};
 }
 const defaultTestPoints=()=>[
   {pressure:0,temperature:25,direction:'up',min:null,max:null},
